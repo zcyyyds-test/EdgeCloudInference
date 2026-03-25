@@ -1,0 +1,62 @@
+[
+  {
+    "model": "qwen3:0.6b",
+    "summary": {
+      "total_scenarios": 30,
+      "accuracy": 0.6,
+      "miss_rate": 0.75,
+      "false_alarm_rate": 0.0,
+      "cloud_saving_rate": 0.8667,
+      "upgrade_rate": 0.1333,
+      "p50_latency_ms": 605.88,
+      "p99_latency_ms": 26656.74,
+      "p50_emergency_latency_ms": 0.0,
+      "p99_emergency_latency_ms": 0.0,
+      "p50_routing_overhead_ms": 0.0222,
+      "p99_routing_overhead_ms": 0.0902,
+      "data_security_compliance": 1.0,
+      "edge_only": 26,
+      "cloud_direct": 1,
+      "cascade": 3,
+      "emergency": 0,
+      "sensitive_leaked": 0
+    },
+    "confidence_stats": {
+      "mean": 0.772,
+      "std": 0.195,
+      "min": 0.36,
+      "max": 1.0
+    },
+    "elapsed_seconds": 97.85
+  },
+  {
+    "model": "qwen3:4b",
+    "summary": {
+      "total_scenarios": 30,
+      "accuracy": 0.6333,
+      "miss_rate": 0.5,
+      "false_alarm_rate": 0.0,
+      "cloud_saving_rate": 0.8667,
+      "upgrade_rate": 0.1333,
+      "p50_latency_ms": 779.59,
+      "p99_latency_ms": 20079.75,
+      "p50_emergency_latency_ms": 0.0,
+      "p99_emergency_latency_ms": 0.0,
+      "p50_routing_overhead_ms": 0.0162,
+      "p99_routing_overhead_ms": 0.092,
+      "data_security_compliance": 1.0,
+      "edge_only": 26,
+      "cloud_direct": 1,
+      "cascade": 3,
+      "emergency": 0,
+      "sensitive_leaked": 0
+    },
+    "confidence_stats": {
+      "mean": 0.949,
+      "std": 0.028,
+      "min": 0.85,
+      "max": 0.98
+    },
+    "elapsed_seconds": 95.78
+  }
+]

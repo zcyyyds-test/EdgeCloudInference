@@ -1,0 +1,80 @@
+{
+  "sweep_points": [
+    {
+      "wan_delay_ms": 10.0,
+      "jitter_ms": 2.0,
+      "accuracy": 0.6429,
+      "miss_rate": 0.625,
+      "false_alarm_rate": 0.0,
+      "cloud_saving_rate": 0.9286,
+      "p50_latency_ms": 628.4,
+      "p99_latency_ms": 25635.9,
+      "edge_only": 26,
+      "cloud_direct": 1,
+      "cascade": 3,
+      "emergency": 0,
+      "total": 28,
+      "all_cloud_p50_estimate_ms": 4399.0
+    },
+    {
+      "wan_delay_ms": 50.0,
+      "jitter_ms": 10.0,
+      "accuracy": 0.6786,
+      "miss_rate": 0.5625,
+      "false_alarm_rate": 0.0,
+      "cloud_saving_rate": 0.9286,
+      "p50_latency_ms": 656.2,
+      "p99_latency_ms": 23024.9,
+      "edge_only": 26,
+      "cloud_direct": 1,
+      "cascade": 3,
+      "emergency": 0,
+      "total": 28,
+      "all_cloud_p50_estimate_ms": 4593.0
+    },
+    {
+      "wan_delay_ms": 200.0,
+      "jitter_ms": 40.0,
+      "accuracy": 0.6071,
+      "miss_rate": 0.6875,
+      "false_alarm_rate": 0.0,
+      "cloud_saving_rate": 0.9286,
+      "p50_latency_ms": 796.7,
+      "p99_latency_ms": 23666.0,
+      "edge_only": 26,
+      "cloud_direct": 1,
+      "cascade": 3,
+      "emergency": 0,
+      "total": 28,
+      "all_cloud_p50_estimate_ms": 5577.0
+    },
+    {
+      "wan_delay_ms": 500.0,
+      "jitter_ms": 100.0,
+      "accuracy": 0.6786,
+      "miss_rate": 0.5625,
+      "false_alarm_rate": 0.0,
+      "cloud_saving_rate": 0.9286,
+      "p50_latency_ms": 1124.4,
+      "p99_latency_ms": 22307.7,
+      "edge_only": 26,
+      "cloud_direct": 1,
+      "cascade": 3,
+      "emergency": 0,
+      "total": 28,
+      "all_cloud_p50_estimate_ms": 7871.0
+    }
+  ],
+  "config": {
+    "edge_model": "qwen3:0.6b",
+    "cloud_model": "Qwen3-14B",
+    "scenarios": 30,
+    "threshold": 0.7,
+    "delays_ms": [
+      10.0,
+      50.0,
+      200.0,
+      500.0
+    ]
+  }
+}

@@ -1,0 +1,98 @@
+{
+  "sweep_points": [
+    {
+      "threshold": 0.3,
+      "accuracy": 0.5,
+      "miss_rate": 0.9375,
+      "false_alarm_rate": 0.0,
+      "cloud_saving_rate": 0.9667,
+      "edge_only": 29,
+      "cloud_used": 1,
+      "p50_latency_ms": 556.4,
+      "p99_latency_ms": 27114.0
+    },
+    {
+      "threshold": 0.5,
+      "accuracy": 0.5333,
+      "miss_rate": 0.75,
+      "false_alarm_rate": 0.0,
+      "cloud_saving_rate": 0.8667,
+      "edge_only": 26,
+      "cloud_used": 4,
+      "p50_latency_ms": 566.3,
+      "p99_latency_ms": 31284.0
+    },
+    {
+      "threshold": 0.6,
+      "accuracy": 0.6,
+      "miss_rate": 0.625,
+      "false_alarm_rate": 0.0,
+      "cloud_saving_rate": 0.8,
+      "edge_only": 24,
+      "cloud_used": 6,
+      "p50_latency_ms": 580.7,
+      "p99_latency_ms": 32407.7
+    },
+    {
+      "threshold": 0.7,
+      "accuracy": 0.6,
+      "miss_rate": 0.625,
+      "false_alarm_rate": 0.0,
+      "cloud_saving_rate": 0.7,
+      "edge_only": 21,
+      "cloud_used": 9,
+      "p50_latency_ms": 614.3,
+      "p99_latency_ms": 32407.7
+    },
+    {
+      "threshold": 0.8,
+      "accuracy": 0.6333,
+      "miss_rate": 0.5625,
+      "false_alarm_rate": 0.0,
+      "cloud_saving_rate": 0.4667,
+      "edge_only": 14,
+      "cloud_used": 16,
+      "p50_latency_ms": 10007.1,
+      "p99_latency_ms": 32407.7
+    },
+    {
+      "threshold": 0.9,
+      "accuracy": 0.6333,
+      "miss_rate": 0.5625,
+      "false_alarm_rate": 0.0,
+      "cloud_saving_rate": 0.4,
+      "edge_only": 12,
+      "cloud_used": 18,
+      "p50_latency_ms": 11276.1,
+      "p99_latency_ms": 32407.7
+    },
+    {
+      "threshold": 0.95,
+      "accuracy": 0.6333,
+      "miss_rate": 0.5625,
+      "false_alarm_rate": 0.0,
+      "cloud_saving_rate": 0.2667,
+      "edge_only": 8,
+      "cloud_used": 22,
+      "p50_latency_ms": 12010.5,
+      "p99_latency_ms": 32407.7
+    }
+  ],
+  "optimal_threshold": null,
+  "config": {
+    "edge_model": "qwen3:0.6b",
+    "cloud_model": "Qwen3-14B",
+    "scenarios": 30,
+    "wan_delay_ms": 50.0,
+    "thresholds": [
+      0.3,
+      0.5,
+      0.6,
+      0.7,
+      0.8,
+      0.9,
+      0.95
+    ]
+  },
+  "cloud_calls_total": 22
+}

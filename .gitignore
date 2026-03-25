@@ -1,0 +1,49 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Data files (scp only, not git)
+data/
+raw/
+processed/
+*.parquet
+*.csv
+
+# Runtime artifacts
+logs/
+*.log
+*.pt
+*.bin
+*.safetensors
+
+# Checkpoints and large outputs
+outputs/checkpoints/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Internal docs (not for public)
+decisions.md
+docs/technical_proposal.md
+docker/
+
+# Env
+.env
+.env.local

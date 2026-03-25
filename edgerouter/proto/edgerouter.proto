@@ -1,0 +1,133 @@
+syntax = "proto3";
+
+package edgerouter;
+
+option python_package = "edgerouter.proto";
+
+// ==========================================================================
+// Core data messages — mirrors edgerouter.core.schema dataclasses
+// ==========================================================================
+
+message ColorRGB {
+  int32 r = 1;
+  int32 g = 2;
+  int32 b = 3;
+}
+
+message VisionOutput {
+  double timestamp = 1;
+  double anomaly_level = 2;
+  double measurement_confidence = 3;
+  ColorRGB color_rgb = 4;
+  double secondary_metric = 5;
+  double texture_irregularity = 6;
+  double surface_uniformity = 7;
+  double anomaly_score = 8;
+  double anomaly_confidence = 9;
+  double inference_latency_ms = 10;
+}
+
+message ProcessContext {
+  string scenario_id = 1;
+  bool has_recipe_params = 2;
+  bool has_customer_info = 3;
+  bool has_reaction_params = 4;
+  int32 num_correlated_anomalies = 5;
+  string equipment_id = 6;
+  string batch_id = 7;
+}
+
+message RoutingDecision {
+  string tier = 1;       // edge_emergency | edge | cascade | cloud
+  string reason = 2;
+  string action = 3;
+  double latency_ms = 4;
+}
+
+message AnalysisResult {
+  string judgment = 1;   // normal | warning | alarm
+  double confidence = 2;
+  string suggested_action = 3;
+  string reasoning = 4;
+  string root_cause = 5;
+  double latency_ms = 6;
+  string source = 7;     // "edge" or "cloud"
+}
+
+// ==========================================================================
+// Request / Response messages
+// ==========================================================================
+
+message Empty {}
+
+message HealthResponse {
+  string status = 1;
+  bool edge_available = 2;
+  bool cloud_available = 3;
+}
+
+message DetectRequest {
+  string scenario_key = 1;
+  string difficulty = 2;  // normal | marginal | anomalous | critical
+}
+
+message DetectResponse {
+  VisionOutput vision_output = 1;
+  string scenario_name = 2;
+  string scenario_difficulty = 3;
+}
+
+message AnalyzeRequest {
+  VisionOutput vision_output = 1;
+  repeated VisionOutput recent_history = 2;
+  AnalysisResult edge_draft = 3;   // optional: used by cloud when cascade
+}
+
+message AnalyzeResponse {
+  AnalysisResult result = 1;
+}
+
+message RouteRequest {
+  VisionOutput vision_output = 1;
+  ProcessContext context = 2;
+}
+
+message RouteResponse {
+  RoutingDecision decision = 1;
+}
+
+message CascadeRequest {
+  VisionOutput vision_output = 1;
+  ProcessContext context = 2;
+  RoutingDecision routing_decision = 3;
+  repeated VisionOutput recent_history = 4;
+}
+
+message CascadeResponse {
+  AnalysisResult edge_analysis = 1;
+  AnalysisResult cloud_analysis = 2;  // null if edge was confident enough
+  string final_judgment = 3;
+  double edge_confidence = 4;
+  double total_latency_ms = 5;
+}
+
+// ==========================================================================
+// Services
+// ==========================================================================
+
+// Full routing service — client sends vision output, gets routed analysis
+service EdgeRouterService {
+  rpc HealthCheck (Empty) returns (HealthResponse);
+  rpc Detect (DetectRequest) returns (DetectResponse);
+  rpc Route (RouteRequest) returns (RouteResponse);
+  rpc Cascade (CascadeRequest) returns (CascadeResponse);
+
+  // Streaming: continuous frame analysis (edge device sends frame stream)
+  rpc StreamAnalyze (stream RouteRequest) returns (stream CascadeResponse);
+}
+
+// Direct analyzer access (for benchmarking / testing)
+service AnalyzerService {
+  rpc AnalyzeEdge (AnalyzeRequest) returns (AnalyzeResponse);
+  rpc AnalyzeCloud (AnalyzeRequest) returns (AnalyzeResponse);
+}

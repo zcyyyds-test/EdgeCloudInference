@@ -1,0 +1,112 @@
+{
+  "dashboard": {
+    "title": "EdgeRouter Monitoring",
+    "uid": "edgerouter-main",
+    "timezone": "browser",
+    "refresh": "5s",
+    "panels": [
+      {
+        "id": 1,
+        "title": "Routing Decisions by Tier",
+        "type": "piechart",
+        "gridPos": {"h": 8, "w": 8, "x": 0, "y": 0},
+        "targets": [
+          {
+            "expr": "sum by (tier) (edgerouter_routing_decisions_total)",
+            "legendFormat": "{{tier}}"
+          }
+        ]
+      },
+      {
+        "id": 2,
+        "title": "Analysis Latency (Edge vs Cloud)",
+        "type": "timeseries",
+        "gridPos": {"h": 8, "w": 8, "x": 8, "y": 0},
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.5, rate(edgerouter_analysis_latency_seconds_bucket[1m]))",
+            "legendFormat": "p50 {{source}}"
+          },
+          {
+            "expr": "histogram_quantile(0.99, rate(edgerouter_analysis_latency_seconds_bucket[1m]))",
+            "legendFormat": "p99 {{source}}"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {"unit": "s"}
+        }
+      },
+      {
+        "id": 3,
+        "title": "Cascade Edge Confirmation Rate",
+        "type": "gauge",
+        "gridPos": {"h": 8, "w": 8, "x": 16, "y": 0},
+        "targets": [
+          {
+            "expr": "edgerouter_cascade_edge_confirmed_total / edgerouter_cascade_total",
+            "legendFormat": "confirmation rate"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "min": 0, "max": 1,
+            "thresholds": {
+              "steps": [
+                {"color": "red", "value": 0},
+                {"color": "yellow", "value": 0.5},
+                {"color": "green", "value": 0.8}
+              ]
+            },
+            "unit": "percentunit"
+          }
+        }
+      },
+      {
+        "id": 4,
+        "title": "Confidence Threshold (Online Learning)",
+        "type": "stat",
+        "gridPos": {"h": 4, "w": 8, "x": 0, "y": 8},
+        "targets": [
+          {
+            "expr": "edgerouter_confidence_threshold",
+            "legendFormat": "threshold"
+          }
+        ]
+      },
+      {
+        "id": 5,
+        "title": "Cloud Upgrade Rate",
+        "type": "stat",
+        "gridPos": {"h": 4, "w": 8, "x": 8, "y": 8},
+        "targets": [
+          {
+            "expr": "edgerouter_cloud_upgrade_rate",
+            "legendFormat": "upgrade rate"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {"unit": "percentunit"}
+        }
+      },
+      {
+        "id": 6,
+        "title": "Routing Decision Latency",
+        "type": "timeseries",
+        "gridPos": {"h": 8, "w": 24, "x": 0, "y": 12},
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.5, rate(edgerouter_routing_latency_seconds_bucket[1m]))",
+            "legendFormat": "routing p50"
+          },
+          {
+            "expr": "histogram_quantile(0.99, rate(edgerouter_routing_latency_seconds_bucket[1m]))",
+            "legendFormat": "routing p99"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {"unit": "s"}
+        }
+      }
+    ]
+  }
+}

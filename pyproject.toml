@@ -1,0 +1,9 @@
+[project]
+name = "edgerouter"
+version = "0.1.0"
+description = "Confidence-Driven Cloud-Edge Inference Routing for Industrial Process Monitoring"
+requires-python = ">=3.11"
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]

@@ -1,0 +1,130 @@
+{
+  "step": {
+    "Ideal Controller": {
+      "ise": 1803.4,
+      "max_deviation_cm": 2.88,
+      "mae_cm": 1.38,
+      "settling_time_s": 0.0
+    },
+    "Edge-Only (0.6B)": {
+      "ise": 14499.5,
+      "max_deviation_cm": 7.71,
+      "mae_cm": 4.07,
+      "settling_time_s": 599.0
+    },
+    "Cloud-Only (14B)": {
+      "ise": 1768.3,
+      "max_deviation_cm": 3.13,
+      "mae_cm": 1.32,
+      "settling_time_s": 0.0
+    },
+    "EdgeRouter (Cascade)": {
+      "ise": 611.9,
+      "max_deviation_cm": 1.99,
+      "mae_cm": 0.81,
+      "settling_time_s": 0.0
+    },
+    "No Control": {
+      "ise": 22555.7,
+      "max_deviation_cm": 11.38,
+      "mae_cm": 4.88,
+      "settling_time_s": 599.0
+    }
+  },
+  "ramp": {
+    "Ideal Controller": {
+      "ise": 686.0,
+      "max_deviation_cm": 1.78,
+      "mae_cm": 0.85,
+      "settling_time_s": 0.0
+    },
+    "Edge-Only (0.6B)": {
+      "ise": 5823.2,
+      "max_deviation_cm": 6.51,
+      "mae_cm": 2.27,
+      "settling_time_s": 599.0
+    },
+    "Cloud-Only (14B)": {
+      "ise": 1176.8,
+      "max_deviation_cm": 2.65,
+      "mae_cm": 1.03,
+      "settling_time_s": 0.0
+    },
+    "EdgeRouter (Cascade)": {
+      "ise": 499.9,
+      "max_deviation_cm": 1.61,
+      "mae_cm": 0.71,
+      "settling_time_s": 0.0
+    },
+    "No Control": {
+      "ise": 5823.2,
+      "max_deviation_cm": 6.51,
+      "mae_cm": 2.27,
+      "settling_time_s": 599.0
+    }
+  },
+  "oscillation": {
+    "Ideal Controller": {
+      "ise": 29.9,
+      "max_deviation_cm": 0.44,
+      "mae_cm": 0.18,
+      "settling_time_s": 0.0
+    },
+    "Edge-Only (0.6B)": {
+      "ise": 44.1,
+      "max_deviation_cm": 0.47,
+      "mae_cm": 0.22,
+      "settling_time_s": 0.0
+    },
+    "Cloud-Only (14B)": {
+      "ise": 44.1,
+      "max_deviation_cm": 0.47,
+      "mae_cm": 0.22,
+      "settling_time_s": 0.0
+    },
+    "EdgeRouter (Cascade)": {
+      "ise": 44.1,
+      "max_deviation_cm": 0.47,
+      "mae_cm": 0.22,
+      "settling_time_s": 0.0
+    },
+    "No Control": {
+      "ise": 44.1,
+      "max_deviation_cm": 0.47,
+      "mae_cm": 0.22,
+      "settling_time_s": 0.0
+    }
+  },
+  "multi_phase": {
+    "Ideal Controller": {
+      "ise": 528.5,
+      "max_deviation_cm": 1.72,
+      "mae_cm": 0.78,
+      "settling_time_s": 0.0
+    },
+    "Edge-Only (0.6B)": {
+      "ise": 2932.9,
+      "max_deviation_cm": 3.0,
+      "mae_cm": 1.95,
+      "settling_time_s": 0.0
+    },
+    "Cloud-Only (14B)": {
+      "ise": 953.9,
+      "max_deviation_cm": 2.34,
+      "mae_cm": 1.06,
+      "settling_time_s": 0.0
+    },
+    "EdgeRouter (Cascade)": {
+      "ise": 551.2,
+      "max_deviation_cm": 1.74,
+      "mae_cm": 0.78,
+      "settling_time_s": 0.0
+    },
+    "No Control": {
+      "ise": 2932.9,
+      "max_deviation_cm": 3.0,
+      "mae_cm": 1.95,
+      "settling_time_s": 0.0
+    }
+  }
+}
