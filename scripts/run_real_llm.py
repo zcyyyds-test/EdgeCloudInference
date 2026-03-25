@@ -1,12 +1,9 @@
-"""Run EdgeRouter benchmark with real LLMs (Ollama edge + transformers cloud).
+"""Run EdgeRouter benchmark with real LLMs (edge + cloud).
 
 Prerequisites:
-    1. Ollama running with qwen3:4b loaded:
-       ollama serve &
-       ollama run qwen3:4b  (to preload)
-
+    1. Edge model serving runtime running with target model loaded.
     2. Cloud model server running:
-       python scripts/serve_cloud.py --model D:/zcy/models/Qwen/Qwen3-14B --port 8000 --gpu 1
+       python scripts/serve_cloud.py --model Qwen/Qwen3.5-27B --port 8000
 
 Usage:
     python scripts/run_real_llm.py [--scenarios 20] [--output real_llm_results.json]
@@ -35,7 +32,7 @@ from edgerouter.scenarios.vision import VisionModel
 
 
 async def check_services() -> tuple[bool, bool]:
-    """Check if edge (Ollama) and cloud model servers are reachable."""
+    """Check if edge and cloud model servers are reachable."""
     import httpx
 
     edge_ok = False
@@ -46,11 +43,11 @@ async def check_services() -> tuple[bool, bool]:
             r = await client.get("http://127.0.0.1:11434/api/tags")
             edge_ok = r.status_code == 200
             models = r.json().get("models", [])
-            print(f"  Edge (Ollama): OK — {len(models)} model(s) loaded")
+            print(f"  Edge: OK — {len(models)} model(s) loaded")
             for m in models:
                 print(f"    - {m.get('name', '?')} ({m.get('size', '?')} bytes)")
         except Exception as e:
-            print(f"  Edge (Ollama): FAILED — {e}")
+            print(f"  Edge: FAILED — {e}")
 
         try:
             r = await client.get("http://127.0.0.1:8000/health")
@@ -68,9 +65,9 @@ async def main():
     parser.add_argument("--scenarios", type=int, default=20, help="Number of scenarios")
     parser.add_argument("--output", default="real_llm_results.json")
     parser.add_argument("--edge-url", default="http://127.0.0.1:11434")
-    parser.add_argument("--edge-model", default="qwen3:4b")
+    parser.add_argument("--edge-model", default="qwen3.5:4b")
     parser.add_argument("--cloud-url", default="http://127.0.0.1:8000/v1")
-    parser.add_argument("--cloud-model", default="Qwen3-14B")
+    parser.add_argument("--cloud-model", default="Qwen3.5-27B")
     args = parser.parse_args()
 
     print("=" * 70)
@@ -81,11 +78,11 @@ async def main():
     print("\nChecking services...")
     edge_ok, cloud_ok = await check_services()
     if not edge_ok:
-        print("\nERROR: Ollama not running. Start with: ollama serve")
+        print("\nERROR: Edge model server not running.")
         return
     if not cloud_ok:
         print("\nERROR: Cloud server not running. Start with:")
-        print("  python scripts/serve_cloud.py --model D:/zcy/models/Qwen/Qwen3-14B --port 8000 --gpu 1")
+        print("  python scripts/serve_cloud.py --model Qwen/Qwen3.5-27B --port 8000")
         return
 
     # Create real analyzers

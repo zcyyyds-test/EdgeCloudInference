@@ -39,7 +39,7 @@ export default function Architecture() {
      │  EDGE TIER  │          │   CLOUD TIER    │
      │             │          │                 │
      │ Qwen3.5-4B │──drift──▶│ Qwen3.5-27B    │
-     │ Ollama      │ cascade  │ vLLM (TP=2)    │
+     │ quantized   │ cascade  │ vLLM (TP=2)    │
      │ ~92ms P50   │          │ ~800ms P50      │
      │             │          │                 │
      │ Multimodal  │          │ Root cause      │
@@ -123,12 +123,11 @@ export default function Architecture() {
             </div>
             <div className="space-y-3">
               {[
-                { label: 'Edge Model', value: 'Qwen3.5-4B via Ollama', detail: 'Multimodal (vision + text), ~3.4GB VRAM' },
-                { label: 'Cloud Model', value: 'Qwen3.5-27B via vLLM', detail: 'TP=2, continuous batching, OpenAI-compatible API' },
+                { label: 'Edge Model', value: 'Qwen3.5-4B (quantized)', detail: 'Multimodal (vision + text), ~3.4GB VRAM' },
+                { label: 'Cloud Model', value: 'Qwen3.5-27B via vLLM', detail: 'Tensor parallel, continuous batching, OpenAI-compatible API' },
                 { label: 'Framework', value: 'Python 3.11+ / FastAPI', detail: 'Async, Prometheus metrics, gRPC support' },
                 { label: 'Dataset', value: 'MVTec AD', detail: '15 categories, 5000+ images, public benchmark' },
-                { label: 'Frontend', value: 'React + Vite + Tailwind', detail: 'TypeScript, Recharts, dark theme' },
-                { label: 'Hardware', value: 'Jetson Orin Nano + GPU Server', detail: 'Edge: 8GB / Cloud: RTX PRO 6000 Blackwell' },
+                { label: 'Hardware', value: 'Edge device + GPU server', detail: 'Edge: ARM/x86 (8GB+) / Cloud: GPU with CUDA' },
               ].map((item) => (
                 <div key={item.label} className="flex items-start gap-3">
                   <div className="text-xs text-slate-600 font-mono w-24 shrink-0 pt-0.5">{item.label}</div>

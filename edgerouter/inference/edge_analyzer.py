@@ -1,4 +1,4 @@
-"""Edge analyzer: Ollama (Qwen3-4B) backend."""
+"""Edge analyzer: lightweight LLM backend for on-device inference."""
 
 from __future__ import annotations
 
@@ -71,7 +71,7 @@ def _build_user_prompt(
 
 
 def _strip_thinking(text: str) -> str:
-    """Remove Qwen3 <think>...</think> blocks from response."""
+    """Remove <think>...</think> blocks from response."""
     import re
     return re.sub(r"<think>.*?</think>", "", text, flags=re.DOTALL).strip()
 
@@ -109,7 +109,7 @@ def _parse_response(text: str) -> dict:
 
 
 class EdgeAnalyzer(AnalyzerBackend):
-    """Edge analyzer backed by Ollama (Qwen3.5 multimodal or Qwen3 text-only)."""
+    """Edge analyzer backed by local LLM server (Qwen3.5 multimodal)."""
 
     def __init__(self, config: EdgeAnalyzerConfig | None = None):
         self.config = config or EdgeAnalyzerConfig()
@@ -128,7 +128,7 @@ class EdgeAnalyzer(AnalyzerBackend):
 
         user_prompt = _build_user_prompt(vision_output, recent_history)
 
-        # Build user message — add image if available (Ollama multimodal format)
+        # Build user message — add image if available (multimodal format)
         user_message: dict = {"role": "user", "content": user_prompt}
         if vision_output.image_path:
             try:

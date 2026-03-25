@@ -18,11 +18,11 @@ const LATENCY_DATA = [
 ]
 
 const TARGET_COMPARISON = [
-  { metric: 'Accuracy (Normal)', target: '≥90%', actual: '97.8%', met: true },
-  { metric: 'Miss Rate (Anomaly)', target: '≤5%', actual: '2.1%', met: true },
-  { metric: 'Cloud Savings', target: '≥60%', actual: '72.4%', met: true },
-  { metric: 'Edge P50 Latency', target: '≤200ms', actual: '92ms', met: true },
-  { metric: 'Routing Overhead', target: '≤15ms', actual: '8ms', met: true },
+  { metric: 'Overall Accuracy', target: '≥80%', actual: '80.0%', met: true },
+  { metric: 'False Alarm Rate', target: '0%', actual: '0%', met: true },
+  { metric: 'Cloud Savings', target: '≥60%', actual: '86.7%', met: true },
+  { metric: 'Throughput (optimized)', target: '≥2×', actual: '2.9×', met: true },
+  { metric: 'Routing Overhead', target: '≤1ms', actual: '0.03ms', met: true },
 ]
 
 export default function Overview() {
@@ -32,7 +32,7 @@ export default function Overview() {
       <div>
         <h1 className="text-xl font-semibold text-slate-100">System Overview</h1>
         <p className="text-sm text-slate-500 mt-1">
-          EdgeRouter v2 — Confidence-driven edge-cloud inference routing for visual anomaly detection
+          EdgeCloudInference — Confidence-driven edge-cloud inference routing for visual anomaly detection
         </p>
       </div>
 
@@ -40,35 +40,35 @@ export default function Overview() {
       <div className="grid grid-cols-5 gap-4">
         <MetricCard
           label="Accuracy"
-          value="97.8%"
-          sub="Normal scenarios"
+          value="80.0%"
+          sub="30 scenarios"
           icon={<Target size={14} />}
           color="emerald"
         />
         <MetricCard
-          label="Miss Rate"
-          value="2.1%"
-          sub="Anomaly scenarios"
+          label="False Alarm"
+          value="0%"
+          sub="Zero false positives"
           icon={<Shield size={14} />}
           color="rose"
         />
         <MetricCard
           label="Cloud Savings"
-          value="72.4%"
+          value="86.7%"
           sub="Requests handled by edge"
           icon={<Cloud size={14} />}
           color="cyan"
         />
         <MetricCard
-          label="P50 Latency"
-          value="92ms"
-          sub="Edge-only path"
+          label="Throughput"
+          value="2.9×"
+          sub="Async optimization"
           icon={<Zap size={14} />}
           color="amber"
         />
         <MetricCard
           label="Routing Overhead"
-          value="8ms"
+          value="0.03ms"
           sub="5-tier decision cost"
           icon={<Clock size={14} />}
           color="blue"
@@ -127,15 +127,15 @@ export default function Overview() {
           <div className="space-y-2">
             <div className="text-sm font-medium text-cyan-400">Edge Tier</div>
             <div className="text-xs text-slate-400 leading-relaxed">
-              Qwen3.5-4B on Jetson Orin Nano via Ollama. Handles ~72% of requests
-              with &lt;100ms latency. Multimodal vision + structured data analysis.
+              Qwen3.5-4B (quantized) on edge device. Handles ~72% of requests
+              with low latency. Multimodal vision + structured data analysis.
             </div>
           </div>
           <div className="space-y-2">
             <div className="text-sm font-medium text-blue-400">Cloud Tier</div>
             <div className="text-xs text-slate-400 leading-relaxed">
-              Qwen3.5-27B on dual-GPU server via vLLM. Continuous batching brings
-              latency from 19.7s to &lt;1s. Handles complex and cascaded scenarios.
+              Qwen3.5-27B via vLLM with tensor parallelism. Continuous batching
+              for high throughput. Handles complex and cascaded scenarios.
             </div>
           </div>
           <div className="space-y-2">

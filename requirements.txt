@@ -8,7 +8,7 @@ pydantic-settings>=2.0
 numpy>=1.26.0
 
 # Inference backends
-httpx>=0.27.0           # async HTTP client for Ollama / vLLM / OpenAI API
+httpx>=0.27.0           # async HTTP client for edge / cloud LLM API
 openai>=1.30.0          # OpenAI-compatible API (vLLM also exposes this)
 
 # gRPC (edge <-> cloud communication)

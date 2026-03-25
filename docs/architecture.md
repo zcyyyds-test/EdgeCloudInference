@@ -32,7 +32,7 @@ graph TB
     end
 
     subgraph Inference["Inference Backends"]
-        Edge["Edge Analyzer<br/>Ollama Qwen3.5 (0.8B/4B)"]
+        Edge["Edge Analyzer<br/>Qwen3.5 (0.8B/4B)"]
         Cloud["Cloud Analyzer<br/>vLLM Qwen3.5-27B"]
     end
 
@@ -121,7 +121,7 @@ flowchart TD
 sequenceDiagram
     participant R as Router Engine
     participant C as Cascade Executor
-    participant E as Edge LLM (Ollama)
+    participant E as Edge LLM
     participant CL as Cloud LLM (14B)
     participant L as Online Learner
 

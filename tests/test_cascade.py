@@ -12,9 +12,11 @@ from edgerouter.core.schema import (
     VisionOutput,
 )
 from edgerouter.control.engine import ControlEngine
+from edgerouter.core.config import RouterConfig
 from edgerouter.inference.base import AnalyzerBackend
 from edgerouter.inference.mock import MockCloudAnalyzer, MockEdgeAnalyzer
 from edgerouter.router.cascade import CascadeExecutor
+from edgerouter.router.prefetch import PredictivePrefetcher
 
 
 # -----------------------------------------------------------------------
@@ -139,6 +141,85 @@ class TestCascadeExecutor:
         decision = RoutingDecision(tier=RoutingTier.EDGE, reason="test")
         outcome = await executor.execute(vo, ctx, decision)
         assert outcome.total_latency_ms > 0
+
+    @pytest.mark.asyncio
+    async def test_cascade_speculative_edge_confident(self):
+        """Speculative prefetch: edge confident → cloud discarded."""
+        config = RouterConfig(
+            enable_speculative_prefetch=True,
+            speculative_anomaly_threshold=0.1,  # low threshold to trigger
+        )
+        prefetcher = PredictivePrefetcher()
+        executor = CascadeExecutor(
+            edge_analyzer=FixedEdgeAnalyzer(Judgment.NORMAL, confidence=0.95),
+            cloud_analyzer=FixedCloudAnalyzer(),
+            config=config,
+            prefetcher=prefetcher,
+        )
+        # anomaly_score=0.5 > threshold=0.1 → speculative path
+        vo = VisionOutput(anomaly_level=50.0, anomaly_score=0.5, anomaly_confidence=0.9)
+        ctx = ProcessContext()
+        decision = RoutingDecision(tier=RoutingTier.CASCADE, reason="uncertain")
+        outcome = await executor.execute(vo, ctx, decision)
+        assert outcome.final_judgment == Judgment.NORMAL
+        # Cloud should have been cancelled/discarded
+        assert outcome.cloud_analysis is None
+
+    @pytest.mark.asyncio
+    async def test_cascade_speculative_edge_uncertain(self):
+        """Speculative prefetch: edge uncertain → use cloud result."""
+        config = RouterConfig(
+            enable_speculative_prefetch=True,
+            speculative_anomaly_threshold=0.1,
+        )
+        prefetcher = PredictivePrefetcher()
+        executor = CascadeExecutor(
+            edge_analyzer=FixedEdgeAnalyzer(Judgment.WARNING, confidence=0.3),
+            cloud_analyzer=FixedCloudAnalyzer(Judgment.ALARM, confidence=0.9),
+            config=config,
+            prefetcher=prefetcher,
+        )
+        vo = VisionOutput(anomaly_level=50.0, anomaly_score=0.5, anomaly_confidence=0.3)
+        ctx = ProcessContext()
+        decision = RoutingDecision(tier=RoutingTier.CASCADE, reason="uncertain")
+        outcome = await executor.execute(vo, ctx, decision)
+        assert outcome.cloud_analysis is not None
+        assert outcome.final_judgment == Judgment.ALARM
+
+    @pytest.mark.asyncio
+    async def test_cascade_no_prefetcher_unchanged(self):
+        """Without prefetcher, cascade behaves identically to original."""
+        executor = CascadeExecutor(
+            edge_analyzer=FixedEdgeAnalyzer(Judgment.NORMAL, confidence=0.95),
+            cloud_analyzer=FixedCloudAnalyzer(),
+        )
+        vo = VisionOutput(anomaly_level=50.0, anomaly_confidence=0.9)
+        ctx = ProcessContext()
+        decision = RoutingDecision(tier=RoutingTier.CASCADE, reason="uncertain")
+        outcome = await executor.execute(vo, ctx, decision)
+        assert outcome.final_judgment == Judgment.NORMAL
+        assert outcome.cloud_analysis is None
+
+    @pytest.mark.asyncio
+    async def test_prefetcher_stats_tracking(self):
+        """Prefetcher tracks useful cascade events."""
+        config = RouterConfig(
+            enable_speculative_prefetch=True,
+            speculative_anomaly_threshold=0.1,
+        )
+        prefetcher = PredictivePrefetcher()
+        executor = CascadeExecutor(
+            edge_analyzer=FixedEdgeAnalyzer(Judgment.WARNING, confidence=0.3),
+            cloud_analyzer=FixedCloudAnalyzer(Judgment.ALARM, confidence=0.9),
+            config=config,
+            prefetcher=prefetcher,
+        )
+        vo = VisionOutput(anomaly_level=50.0, anomaly_score=0.5, anomaly_confidence=0.3)
+        ctx = ProcessContext()
+        decision = RoutingDecision(tier=RoutingTier.CASCADE, reason="uncertain")
+        await executor.execute(vo, ctx, decision)
+        stats = prefetcher.get_stats()
+        assert stats["prefetch_useful"] >= 1
 
 
 # -----------------------------------------------------------------------

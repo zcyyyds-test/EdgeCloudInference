@@ -1,6 +1,6 @@
 """Model size ablation: compare edge model sizes with real LLM inference.
 
-Tests multiple Ollama edge models against the same cloud backend.
+Tests multiple edge model sizes against the same cloud backend.
 
 Usage:
     python scripts/run_model_ablation.py [--scenarios 30] [--models 0.6b,4b]
@@ -144,11 +144,11 @@ async def run_one_model(
 async def main():
     parser = argparse.ArgumentParser(description="Model Size Ablation")
     parser.add_argument("--scenarios", type=int, default=30)
-    parser.add_argument("--models", default="qwen3:0.6b,qwen3:4b",
+    parser.add_argument("--models", default="qwen3.5:0.8b,qwen3.5:4b",
                         help="Comma-separated edge model names")
     parser.add_argument("--edge-url", default="http://127.0.0.1:11434")
     parser.add_argument("--cloud-url", default="http://127.0.0.1:8000/v1")
-    parser.add_argument("--cloud-model", default="Qwen3-14B")
+    parser.add_argument("--cloud-model", default="Qwen3.5-27B")
     parser.add_argument("--output", default="experiments/model_ablation.json")
     args = parser.parse_args()
 

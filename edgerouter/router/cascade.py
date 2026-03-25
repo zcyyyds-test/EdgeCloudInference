@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import logging
 import time
 
@@ -47,11 +48,13 @@ class CascadeExecutor:
         edge_analyzer: AnalyzerBackend,
         cloud_analyzer: AnalyzerBackend,
         config: RouterConfig | None = None,
+        prefetcher=None,
     ):
         self.edge = edge_analyzer
         self.cloud = cloud_analyzer
         self.config = config or RouterConfig()
         self.data_security = DataSecurityChecker()
+        self.prefetcher = prefetcher
 
     async def execute(
         self,
@@ -117,26 +120,73 @@ class CascadeExecutor:
             self._record_cascade(edge_result, cloud_result)
 
         elif routing_decision.tier == RoutingTier.CASCADE:
-            # Cascade: edge first, then decide whether to escalate
-            edge_result = await self.edge.analyze(vision_output, recent_history)
-            outcome.edge_analysis = edge_result
-
-            combined_conf = self._estimate_confidence(
-                vision_output, edge_result, recent_history,
+            # Determine whether to speculatively prefetch cloud in parallel
+            should_speculate = (
+                self.config.enable_speculative_prefetch
+                and self.prefetcher is not None
+                and self._should_speculate(vision_output)
             )
-            outcome.edge_confidence = combined_conf
 
-            if combined_conf >= self.config.confidence_threshold:
-                # Edge is confident enough
-                outcome.final_judgment = edge_result.judgment
-            else:
-                # Escalate to cloud
-                cloud_result = await self.cloud.analyze(
-                    vision_output, recent_history, edge_draft=edge_result,
+            if should_speculate:
+                # Track speculative trigger for stats
+                if self.prefetcher is not None:
+                    self.prefetcher.state.prefetch_triggered += 1
+                    self.prefetcher._pending_prefetch_frame = self.prefetcher._frame_counter
+
+                # Speculative: fire edge + cloud in parallel
+                edge_task = asyncio.ensure_future(
+                    self.edge.analyze(vision_output, recent_history)
                 )
-                outcome.cloud_analysis = cloud_result
-                outcome.final_judgment = cloud_result.judgment
-                self._record_cascade(edge_result, cloud_result)
+                cloud_task = asyncio.ensure_future(
+                    self.cloud.analyze(vision_output, recent_history)
+                )
+                edge_result = await edge_task
+                outcome.edge_analysis = edge_result
+
+                combined_conf = self._estimate_confidence(
+                    vision_output, edge_result, recent_history,
+                )
+                outcome.edge_confidence = combined_conf
+
+                if combined_conf >= self.config.confidence_threshold:
+                    # Edge confident — discard speculative cloud result
+                    cloud_task.cancel()
+                    try:
+                        await cloud_task
+                    except asyncio.CancelledError:
+                        pass
+                    outcome.final_judgment = edge_result.judgment
+                    # Speculative prefetch was wasted (edge was confident)
+                    if self.prefetcher is not None:
+                        self.prefetcher.state.prefetch_wasted += 1
+                        self.prefetcher._pending_prefetch_frame = None
+                else:
+                    # Edge not confident — cloud result already in flight
+                    cloud_result = await cloud_task
+                    outcome.cloud_analysis = cloud_result
+                    outcome.final_judgment = cloud_result.judgment
+                    self._record_cascade(edge_result, cloud_result)
+                    if self.prefetcher is not None:
+                        self.prefetcher.mark_cascade_happened()
+            else:
+                # Sequential: edge first, then decide whether to escalate
+                edge_result = await self.edge.analyze(vision_output, recent_history)
+                outcome.edge_analysis = edge_result
+
+                combined_conf = self._estimate_confidence(
+                    vision_output, edge_result, recent_history,
+                )
+                outcome.edge_confidence = combined_conf
+
+                if combined_conf >= self.config.confidence_threshold:
+                    outcome.final_judgment = edge_result.judgment
+                else:
+                    cloud_result = await self.cloud.analyze(
+                        vision_output, recent_history, edge_draft=edge_result,
+                    )
+                    outcome.cloud_analysis = cloud_result
+                    outcome.final_judgment = cloud_result.judgment
+                    self._record_cascade(edge_result, cloud_result)
 
         # Total latency: sum of analyzer latencies
         # Real wall-clock time may differ from reported latency
@@ -172,6 +222,17 @@ class CascadeExecutor:
             return estimate_combined(
                 vision_output, edge_result, recent_history, self.config,
             )
+
+    def _should_speculate(self, vision_output: VisionOutput) -> bool:
+        """Check if speculative cloud prefetch should fire.
+
+        Two triggers (PredictivePrefetcher trend OR anomaly_score fallback):
+        - Primary: prefetcher detects declining confidence trend (needs history)
+        - Fallback: anomaly_score exceeds threshold (works without history)
+        """
+        if self.prefetcher is not None and self.prefetcher.should_prefetch():
+            return True
+        return vision_output.anomaly_score > self.config.speculative_anomaly_threshold
 
     @staticmethod
     def _record_cascade(edge: AnalysisResult, cloud: AnalysisResult) -> None:

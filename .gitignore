@@ -43,6 +43,7 @@ Thumbs.db
 decisions.md
 docs/technical_proposal.md
 docker/
+frontend/README.md
 
 # Env
 .env

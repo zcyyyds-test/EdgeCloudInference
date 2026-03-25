@@ -5,17 +5,11 @@ Modes:
     transformers: Fallback for environments where vLLM is not available.
 
 Usage:
-    # vLLM mode (recommended, requires vLLM >= 0.18.0, Linux/WSL only):
+    # vLLM mode (recommended, requires vLLM >= 0.18.0):
     python scripts/serve_cloud.py --mode vllm --model Qwen/Qwen3.5-27B --tp 2
 
-    # On Windows server — run vLLM inside WSL:
-    wsl -d Ubuntu-24.04 -- bash -c "source ~/vllm-env/bin/activate && \\
-        VLLM_USE_DEEP_GEMM=0 python -m vllm.entrypoints.openai.api_server \\
-        --model Qwen/Qwen3.5-27B --port 8000 --tensor-parallel-size 2 \\
-        --gpu-memory-utilization 0.9 --trust-remote-code"
-
-    # Transformers mode (fallback, Windows native):
-    python scripts/serve_cloud.py --mode transformers --model D:/zcy/models/Qwen/Qwen3-14B --gpu 1
+    # Transformers mode (fallback):
+    python scripts/serve_cloud.py --mode transformers --model /path/to/Qwen3.5-27B --gpu 0
 
     # Check GPU/CUDA availability:
     python scripts/serve_cloud.py --check
@@ -77,7 +71,7 @@ async def chat_completions(request: ChatCompletionRequest):
 
     text = _tokenizer.apply_chat_template(
         messages, tokenize=False, add_generation_prompt=True,
-        enable_thinking=False,  # Disable Qwen3 thinking mode for faster JSON output
+        enable_thinking=False,  # Disable thinking mode for faster JSON output
     )
     inputs = _tokenizer(text, return_tensors="pt").to(_model.device)
 
@@ -143,7 +137,6 @@ def _serve_vllm(model: str, port: int, tp: int, gpu_util: float):
     import sys
 
     env = os.environ.copy()
-    # Workaround for Blackwell GPUs (RTX PRO 6000 / SM120)
     env["VLLM_USE_DEEP_GEMM"] = "0"
 
     cmd = [
@@ -153,6 +146,7 @@ def _serve_vllm(model: str, port: int, tp: int, gpu_util: float):
         "--tensor-parallel-size", str(tp),
         "--gpu-memory-utilization", str(gpu_util),
         "--trust-remote-code",
+        "--enable-prefix-caching",
     ]
 
     print(f"Starting vLLM server:")
@@ -160,7 +154,8 @@ def _serve_vllm(model: str, port: int, tp: int, gpu_util: float):
     print(f"  Port: {port}")
     print(f"  Tensor parallel: {tp}")
     print(f"  GPU utilization: {gpu_util}")
-    print(f"  VLLM_USE_DEEP_GEMM=0 (Blackwell workaround)")
+    print(f"  Prefix caching: enabled")
+    print(f"  VLLM_USE_DEEP_GEMM=0")
     print(f"  Endpoint: http://localhost:{port}/v1/chat/completions")
     print()
 

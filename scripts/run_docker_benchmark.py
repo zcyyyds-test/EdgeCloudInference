@@ -1,15 +1,15 @@
-"""Benchmark with Docker edge (0.6B CPU) + native cloud (14B GPU).
+"""Benchmark with Docker edge (0.6B CPU) + cloud (27B GPU).
 
 This script demonstrates real edge-cloud separation:
-  - Edge: Docker container (2 CPU, 2GB RAM, no GPU) running Ollama qwen3:0.6b
-  - Cloud: Native GPU process running Qwen3-14B via serve_cloud.py
+  - Edge: Docker container (2 CPU, 2GB RAM, no GPU) running quantized edge model
+  - Cloud: GPU server running Qwen3.5-27B via vLLM
   - Network: Docker bridge + optional tc netem WAN delay
 
 Prerequisites:
     1. Docker edge container running:
        docker compose -f docker/docker-compose.yml up -d
     2. Cloud server running:
-       python scripts/serve_cloud.py --model D:/zcy/models/Qwen/Qwen3-14B --port 8000 --gpu 1
+       python scripts/serve_cloud.py --mode vllm --model Qwen/Qwen3.5-27B --port 8000
 
 Usage:
     python scripts/run_docker_benchmark.py [--scenarios 20] [--edge-url http://172.20.0.2:11434]
@@ -85,10 +85,10 @@ async def main():
     parser.add_argument("--scenarios", type=int, default=20)
     parser.add_argument("--output", default="experiments/docker_benchmark.json")
     parser.add_argument("--edge-url", default="http://172.20.0.2:11434",
-                        help="Docker edge Ollama URL")
-    parser.add_argument("--edge-model", default="qwen3:0.6b")
+                        help="Docker edge model URL")
+    parser.add_argument("--edge-model", default="qwen3.5:4b")
     parser.add_argument("--cloud-url", default="http://localhost:8000/v1")
-    parser.add_argument("--cloud-model", default="Qwen3-14B")
+    parser.add_argument("--cloud-model", default="Qwen3.5-27B")
     args = parser.parse_args()
 
     print("=" * 70)

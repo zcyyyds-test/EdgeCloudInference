@@ -80,7 +80,7 @@ def _build_user_prompt(
 
 
 def _strip_thinking(text: str) -> str:
-    """Remove Qwen3 <think>...</think> blocks from response."""
+    """Remove <think>...</think> blocks from response."""
     import re
     return re.sub(r"<think>.*?</think>", "", text, flags=re.DOTALL).strip()
 

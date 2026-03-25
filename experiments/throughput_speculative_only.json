@@ -1,0 +1,68 @@
+{
+  "summary": {
+    "total_scenarios": 30,
+    "accuracy": 0.8,
+    "miss_rate": 0.375,
+    "false_alarm_rate": 0.0,
+    "cloud_saving_rate": 0.8667,
+    "upgrade_rate": 0.1333,
+    "p50_latency_ms": 2332.86,
+    "p99_latency_ms": 10489.97,
+    "p50_emergency_latency_ms": 0.0,
+    "p99_emergency_latency_ms": 0.0,
+    "p50_routing_overhead_ms": 0.0249,
+    "p99_routing_overhead_ms": 0.0947,
+    "data_security_compliance": 1.0,
+    "edge_only": 26,
+    "cloud_direct": 1,
+    "cascade": 3,
+    "emergency": 0,
+    "sensitive_leaked": 0
+  },
+  "config": {
+    "edge_model": "qwen3.5:4b",
+    "cloud_model": "Qwen3.5-27B",
+    "edge_url": "http://127.0.0.1:11434",
+    "cloud_url": "http://127.0.0.1:8000/v1",
+    "scenarios": 30,
+    "wan_delay_ms": 50.0,
+    "wan_jitter_ms": 10.0,
+    "confidence_threshold": 0.7,
+    "baseline_rtt_ms": 9.1,
+    "edge_num_gpu": -1,
+    "deployment": "qwen3.5:4b_edge(quantized) + Qwen3.5-27B_cloud"
+  },
+  "optimization": {
+    "concurrency": 1,
+    "speculative_prefetch": true
+  },
+  "throughput": {
+    "scenarios_per_sec": 0.3,
+    "elapsed_seconds": 99.23
+  },
+  "cloud_latency": {
+    "count": 6,
+    "p50_ms": 6541.3,
+    "p99_ms": 8060.3,
+    "mean_ms": 6354.0
+  },
+  "cascade_latency": {
+    "count": 3,
+    "p50_ms": 8008.8,
+    "mean_ms": 7549.8
+  },
+  "confidence_stats": {
+    "mean": 0.819,
+    "std": 0.154,
+    "min": 0.42,
+    "max": 0.99
+  },
+  "prefetch_stats": {
+    "prefetch_triggered": 3,
+    "prefetch_useful": 3,
+    "prefetch_wasted": 0,
+    "precision": 1.0,
+    "history_length": 30
+  },
+  "elapsed_seconds": 99.23
+}

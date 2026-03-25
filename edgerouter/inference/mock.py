@@ -14,7 +14,7 @@ from edgerouter.inference.base import AnalyzerBackend
 
 
 class MockEdgeAnalyzer(AnalyzerBackend):
-    """Deterministic mock edge analyzer (Qwen3-4B level).
+    """Deterministic mock edge analyzer (Qwen3.5-4B level).
 
     Capabilities:
     - Good at obvious anomalies (high anomaly_score)
@@ -187,7 +187,7 @@ class WANDelayCloudAnalyzer(AnalyzerBackend):
 
 
 class MockCloudAnalyzer(AnalyzerBackend):
-    """Deterministic mock cloud analyzer (Qwen3-72B / GPT-4o level).
+    """Deterministic mock cloud analyzer (Qwen3.5-27B level).
 
     Capabilities:
     - Excellent multi-indicator correlation

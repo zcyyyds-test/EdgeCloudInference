@@ -8,7 +8,7 @@ Two-phase strategy to minimize cloud calls:
 This avoids re-running edge inference for each threshold setting.
 
 Prerequisites:
-    1. Ollama running with edge model loaded
+    1. Edge model server running with target model loaded
     2. Cloud server: python scripts/serve_cloud.py --model ... --port 8000 --gpu 1
 
 Usage:
@@ -63,9 +63,9 @@ async def main():
     parser.add_argument("--scenarios", type=int, default=30)
     parser.add_argument("--output", default="experiments/real_llm_threshold_sweep.json")
     parser.add_argument("--edge-url", default="http://127.0.0.1:11434")
-    parser.add_argument("--edge-model", default="qwen3:0.6b")
+    parser.add_argument("--edge-model", default="qwen3.5:4b")
     parser.add_argument("--cloud-url", default="http://127.0.0.1:8000/v1")
-    parser.add_argument("--cloud-model", default="Qwen3-14B")
+    parser.add_argument("--cloud-model", default="Qwen3.5-27B")
     parser.add_argument("--wan-delay-ms", type=float, default=50.0)
     parser.add_argument("--thresholds", type=str,
                         default="0.3,0.5,0.6,0.7,0.8,0.9,0.95")

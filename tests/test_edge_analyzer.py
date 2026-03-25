@@ -1,4 +1,4 @@
-"""Tests for edge analyzer (unit tests, no Ollama required)."""
+"""Tests for edge analyzer (unit tests, no external server required)."""
 
 import json
 

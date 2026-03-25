@@ -28,11 +28,17 @@ class RouterConfig(BaseSettings):
     # Confidence estimation method: "output_prob", "self_verify", "temporal", "combined"
     confidence_method: str = "combined"
 
+    # Speculative prefetch: fire edge+cloud in parallel for cascade tier
+    enable_speculative_prefetch: bool = False
+    speculative_anomaly_threshold: float = Field(
+        0.3, description="Anomaly score fallback trigger when no trend history available",
+    )
+
     model_config = {"env_prefix": "EDGEROUTER_"}
 
 
 class EdgeAnalyzerConfig(BaseSettings):
-    """Edge analyzer (Ollama) configuration — supports Qwen3.5 multimodal."""
+    """Edge analyzer configuration — supports Qwen3.5 multimodal."""
 
     base_url: str = "http://localhost:11434"
     model: str = "qwen3.5:4b"              # Qwen3.5 multimodal (vision+text)
@@ -66,13 +72,13 @@ class VisionConfig(BaseSettings):
     """Vision model configuration."""
 
     model_params: int = 2_500_000              # MobileNetV3-Small level
-    inference_latency_ms: float = 18.0         # Jetson Orin Nano estimate
+    inference_latency_ms: float = 18.0
     noise_scale_normal: float = 0.3            # cm noise for normal scenarios
     noise_scale_marginal: float = 1.0
     noise_scale_anomalous: float = 2.0
     noise_scale_critical: float = 3.0
 
-    model_config = {"env_prefix": "VISION_SIM_"}
+    model_config = {"env_prefix": "VISION_"}
 
 
 class ServerConfig(BaseSettings):

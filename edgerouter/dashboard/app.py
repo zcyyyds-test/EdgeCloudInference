@@ -42,11 +42,11 @@ from edgerouter.scenarios.vision import VisionModel
 
 def main():
     st.set_page_config(
-        page_title="EdgeRouter Dashboard",
+        page_title="EdgeCloudInference Dashboard",
         page_icon="\u26a1",
         layout="wide",
     )
-    st.title("EdgeRouter: Confidence-Driven Cloud-Edge Routing")
+    st.title("EdgeCloudInference: Confidence-Driven Cloud-Edge Routing")
 
     tabs = st.tabs([
         "Overview",
@@ -162,8 +162,8 @@ Camera/Sensor
             +---------+---------+
             v                   v
      [Edge Analyzer]     [Cloud Analyzer]
-      Qwen3-0.6B/4B      Qwen3-14B
-      Ollama, ~600ms      transformers, ~17s
+      Qwen3.5-0.8B/4B    Qwen3.5-27B
+      quantized, ~600ms    vLLM, ~5s
             |                   |
             v                   v
      confidence < threshold?

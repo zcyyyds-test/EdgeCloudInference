@@ -1,22 +1,20 @@
-"""Edge-Cloud benchmark: 0.6B edge (Ollama) + 14B cloud (serve_cloud.py).
+"""Edge-Cloud benchmark with throughput optimizations.
 
 Demonstrates real edge-cloud routing with different model sizes:
-  - Edge: Ollama qwen3:0.6b (lightweight, fast, lower accuracy)
-  - Cloud: Qwen3-14B via serve_cloud.py (heavy, slower, higher accuracy)
-  - Optional: WAN delay on edge requests
+  - Edge: Quantized LLM (lightweight, fast, lower accuracy)
+  - Cloud: vLLM (heavy, slower, higher accuracy)
+  - Optional: WAN delay, concurrent inference, speculative prefetch
 
-Resource isolation note:
-    On the Intel server, edge deployment uses resource-constrained inference.
-    WSL2 limitations (no netem, process non-persistence, sudo requirements)
-    made this impractical. The key differentiator — model quality and routing
-    logic — is demonstrated here without physical resource isolation.
+Throughput optimizations:
+  --concurrency N        Run N scenarios concurrently (default: 1 = sequential)
+  --speculative-prefetch Enable speculative cloud prefetch for cascade tier
 
 Prerequisites:
-    1. Ollama running with qwen3:0.6b loaded
-    2. Cloud server: python scripts/serve_cloud.py --model ... --port 8000 --gpu 1
+    1. Edge model server running with target model loaded
+    2. Cloud server: python scripts/serve_cloud.py --model ... --port 8000
 
 Usage:
-    python scripts/run_edge_cloud_benchmark.py [--scenarios 30] [--wan-delay-ms 50]
+    python scripts/run_edge_cloud_benchmark.py [--scenarios 30] [--concurrency 4]
 """
 
 from __future__ import annotations
@@ -39,6 +37,7 @@ from edgerouter.inference.cloud_analyzer import CloudAnalyzer
 from edgerouter.inference.edge_analyzer import EdgeAnalyzer
 from edgerouter.router.cascade import CascadeExecutor
 from edgerouter.router.engine import RouterEngine
+from edgerouter.router.prefetch import PredictivePrefetcher
 from edgerouter.scenarios.vision import VisionModel
 
 
@@ -70,12 +69,12 @@ async def check_services(edge_url: str, cloud_url: str) -> tuple[bool, bool]:
             r = await c.get(f"{edge_url}/api/tags")
             if r.status_code == 200:
                 models = r.json().get("models", [])
-                print(f"  Edge (Ollama):  OK — {len(models)} model(s)")
+                print(f"  Edge:  OK — {len(models)} model(s)")
                 for m in models:
                     print(f"    - {m.get('name', '?')}")
                 edge_ok = True
         except Exception as e:
-            print(f"  Edge (Ollama):  FAILED — {e}")
+            print(f"  Edge:  FAILED — {e}")
 
         try:
             # Try vLLM health endpoint first (returns empty 200), then /v1/models
@@ -108,21 +107,55 @@ async def measure_rtt(url: str, n: int = 5) -> float:
     return float(sum(times) / len(times))
 
 
+def _collect_outcome(metrics, outcome, decision, confidences):
+    """Collect a single outcome into metrics (shared by sequential and concurrent paths)."""
+    metrics.total_scenarios += 1
+    metrics.outcomes.append(outcome)
+    metrics.latencies.append(outcome.total_latency_ms)
+    metrics.routing_overhead_ms.append(decision.latency_ms)
+
+    gt = outcome.ground_truth_judgment
+    predicted = outcome.final_judgment
+    if predicted == gt:
+        metrics.correct_judgments += 1
+    elif gt in (Judgment.WARNING, Judgment.ALARM) and predicted == Judgment.NORMAL:
+        metrics.false_negatives += 1
+    elif gt == Judgment.NORMAL and predicted in (Judgment.WARNING, Judgment.ALARM):
+        metrics.false_positives += 1
+
+    if decision.tier == RoutingTier.EDGE_EMERGENCY:
+        metrics.emergency_count += 1
+    elif decision.tier == RoutingTier.EDGE:
+        metrics.edge_only_count += 1
+    elif decision.tier == RoutingTier.CLOUD:
+        metrics.cloud_count += 1
+    elif decision.tier == RoutingTier.CASCADE:
+        metrics.cascade_count += 1
+
+    conf = outcome.edge_analysis.confidence if outcome.edge_analysis else 0
+    confidences.append(conf)
+    return conf
+
+
 async def main():
     parser = argparse.ArgumentParser(description="Edge-Cloud Benchmark")
     parser.add_argument("--scenarios", type=int, default=30)
     parser.add_argument("--output", default="experiments/edge_cloud_benchmark.json")
     parser.add_argument("--edge-url", default="http://127.0.0.1:11434")
-    parser.add_argument("--edge-model", default="qwen3:0.6b")
+    parser.add_argument("--edge-model", default="qwen3.5:4b")
     parser.add_argument("--cloud-url", default="http://127.0.0.1:8000/v1")
-    parser.add_argument("--cloud-model", default="Qwen3-14B")
+    parser.add_argument("--cloud-model", default="Qwen3.5-27B")
     parser.add_argument("--wan-delay-ms", type=float, default=50.0,
                         help="WAN delay for edge requests (ms)")
     parser.add_argument("--wan-jitter-ms", type=float, default=10.0,
                         help="Jitter for WAN delay (ms, normal distribution)")
     parser.add_argument("--confidence-threshold", type=float, default=0.7)
     parser.add_argument("--num-gpu", type=int, default=-1,
-                        help="Ollama GPU layers: -1=auto, 0=CPU-only")
+                        help="Edge GPU layers: -1=auto, 0=CPU-only")
+    parser.add_argument("--concurrency", type=int, default=1,
+                        help="Max concurrent inferences (1=sequential, 4=recommended)")
+    parser.add_argument("--speculative-prefetch", action="store_true",
+                        help="Enable speculative cloud prefetch for cascade tier")
     args = parser.parse_args()
 
     print("=" * 70)
@@ -133,6 +166,8 @@ async def main():
     print(f"  Cloud: {args.cloud_url} ({args.cloud_model})")
     print(f"  WAN delay: {args.wan_delay_ms}ms ± {args.wan_jitter_ms}ms")
     print(f"  Confidence threshold: {args.confidence_threshold}")
+    print(f"  Concurrency: {args.concurrency}")
+    print(f"  Speculative prefetch: {args.speculative_prefetch}")
 
     print("\nChecking services...")
     edge_ok, cloud_ok = await check_services(args.edge_url, args.cloud_url)
@@ -158,9 +193,15 @@ async def main():
     )
     cloud = CloudAnalyzer(cloud_config)
 
-    router_config = RouterConfig(confidence_threshold=args.confidence_threshold)
+    router_config = RouterConfig(
+        confidence_threshold=args.confidence_threshold,
+        enable_speculative_prefetch=args.speculative_prefetch,
+    )
     router = RouterEngine(router_config)
-    cascade = CascadeExecutor(edge, cloud, router_config)
+
+    # Setup prefetcher if speculative prefetch is enabled
+    prefetcher = PredictivePrefetcher() if args.speculative_prefetch else None
+    cascade = CascadeExecutor(edge, cloud, router_config, prefetcher=prefetcher)
 
     vision = VisionModel(seed=42)
     runner = BenchmarkRunner(router, cascade, vision)
@@ -169,64 +210,101 @@ async def main():
     if args.scenarios < workload.size:
         workload.scenarios = workload.scenarios[:args.scenarios]
 
-    print(f"\nWorkload: {len(workload.scenarios)} scenarios")
+    total_scenarios = len(workload.scenarios)
+    print(f"\nWorkload: {total_scenarios} scenarios")
     print("Running benchmark...\n")
 
     metrics = BenchmarkMetrics()
-    t_start = time.perf_counter()
     confidences = []
+    t_start = time.perf_counter()
 
-    for i, scenario in enumerate(workload.scenarios):
-        vision_output = vision.detect(scenario)
-        context = runner._scenario_to_context(scenario, idx=i)
-        decision = router.route(vision_output, context)
+    if args.concurrency <= 1:
+        # Sequential path (original behavior)
+        for i, scenario in enumerate(workload.scenarios):
+            vision_output = vision.detect(scenario)
+            context = runner._scenario_to_context(scenario, idx=i)
+            decision = router.route(vision_output, context)
 
-        try:
-            outcome = await cascade.execute(vision_output, context, decision)
-        except Exception as e:
-            print(f"  [{i+1:3d}] ERROR: {e}")
-            continue
+            try:
+                outcome = await cascade.execute(vision_output, context, decision)
+            except Exception as e:
+                print(f"  [{i+1:3d}] ERROR: {e}")
+                continue
 
-        outcome.ground_truth_judgment = scenario.ground_truth_judgment
-        metrics.total_scenarios += 1
-        metrics.outcomes.append(outcome)
-        metrics.latencies.append(outcome.total_latency_ms)
-        metrics.routing_overhead_ms.append(decision.latency_ms)
+            outcome.ground_truth_judgment = scenario.ground_truth_judgment
+            conf = _collect_outcome(metrics, outcome, decision, confidences)
 
-        gt = scenario.ground_truth_judgment
-        predicted = outcome.final_judgment
-        if predicted == gt:
-            metrics.correct_judgments += 1
-        elif gt in (Judgment.WARNING, Judgment.ALARM) and predicted == Judgment.NORMAL:
-            metrics.false_negatives += 1
-        elif gt == Judgment.NORMAL and predicted in (Judgment.WARNING, Judgment.ALARM):
-            metrics.false_positives += 1
+            # Update prefetcher with confidence observation
+            if prefetcher is not None:
+                prefetcher.update(conf)
 
-        if decision.tier == RoutingTier.EDGE_EMERGENCY:
-            metrics.emergency_count += 1
-        elif decision.tier == RoutingTier.EDGE:
-            metrics.edge_only_count += 1
-        elif decision.tier == RoutingTier.CLOUD:
-            metrics.cloud_count += 1
-        elif decision.tier == RoutingTier.CASCADE:
-            metrics.cascade_count += 1
+            tier_str = decision.tier.value[:5]
+            j_str = outcome.final_judgment.value[:4]
+            gt_str = scenario.ground_truth_judgment.value[:4]
+            match = "✓" if outcome.final_judgment == scenario.ground_truth_judgment else "✗"
+            lat = outcome.total_latency_ms
+            print(f"  [{i+1:3d}/{total_scenarios}] tier={tier_str:5s} "
+                  f"pred={j_str} gt={gt_str} {match} conf={conf:.2f} lat={lat:.0f}ms")
+    else:
+        # Concurrent path: asyncio.gather + semaphore
+        semaphore = asyncio.Semaphore(args.concurrency)
+        print_lock = asyncio.Lock()
 
-        conf = outcome.edge_analysis.confidence if outcome.edge_analysis else 0
-        confidences.append(conf)
+        async def process_one(i, scenario):
+            async with semaphore:
+                vision_output = vision.detect(scenario)
+                context = runner._scenario_to_context(scenario, idx=i)
+                decision = router.route(vision_output, context)
+                try:
+                    outcome = await cascade.execute(vision_output, context, decision)
+                except Exception as e:
+                    async with print_lock:
+                        print(f"  [{i+1:3d}] ERROR: {e}")
+                    return None
+                outcome.ground_truth_judgment = scenario.ground_truth_judgment
+                return (i, scenario, decision, outcome)
 
-        tier_str = decision.tier.value[:5]
-        j_str = outcome.final_judgment.value[:4]
-        gt_str = gt.value[:4]
-        match = "✓" if predicted == gt else "✗"
-        lat = outcome.total_latency_ms
-        print(f"  [{i+1:3d}/{len(workload.scenarios)}] tier={tier_str:5s} "
-              f"pred={j_str} gt={gt_str} {match} conf={conf:.2f} lat={lat:.0f}ms")
+        tasks = [process_one(i, s) for i, s in enumerate(workload.scenarios)]
+        results = await asyncio.gather(*tasks)
+
+        # Collect results in order (asyncio.gather preserves order)
+        for result in results:
+            if result is None:
+                continue
+            i, scenario, decision, outcome = result
+            conf = _collect_outcome(metrics, outcome, decision, confidences)
+
+            tier_str = decision.tier.value[:5]
+            j_str = outcome.final_judgment.value[:4]
+            gt_str = scenario.ground_truth_judgment.value[:4]
+            match = "✓" if outcome.final_judgment == scenario.ground_truth_judgment else "✗"
+            lat = outcome.total_latency_ms
+            print(f"  [{i+1:3d}/{total_scenarios}] tier={tier_str:5s} "
+                  f"pred={j_str} gt={gt_str} {match} conf={conf:.2f} lat={lat:.0f}ms")
 
     elapsed = time.perf_counter() - t_start
     summary = metrics.summary()
 
     import numpy as np
     conf_arr = np.array(confidences) if confidences else np.array([0])
+
+    # Cloud-specific latency stats
+    cloud_latencies = [
+        o.cloud_analysis.latency_ms
+        for o in metrics.outcomes
+        if o.cloud_analysis is not None
+    ]
+    cloud_lat_arr = np.array(cloud_latencies) if cloud_latencies else np.array([0])
+
+    # Cascade-specific latency stats
+    cascade_latencies = [
+        o.total_latency_ms
+        for o in metrics.outcomes
+        if o.routing_decision.tier == RoutingTier.CASCADE
+    ]
+    cascade_lat_arr = np.array(cascade_latencies) if cascade_latencies else np.array([0])
+
+    throughput = metrics.total_scenarios / max(0.001, elapsed)
 
     print(f"\n{'=' * 70}")
     print(f"Results (Edge {args.edge_model} + Cloud {args.cloud_model})")
@@ -246,8 +324,28 @@ async def main():
     print(f"  Cascade:       {summary['cascade']}")
     print(f"  Emergency:     {summary['emergency']}")
     print(f"  Conf mean/std: {conf_arr.mean():.3f} / {conf_arr.std():.3f}")
-    print(f"  Total time:    {elapsed:.1f}s "
-          f"({elapsed/max(1,metrics.total_scenarios):.1f}s/scenario)")
+    print(f"  --- Throughput ---")
+    print(f"  Concurrency:   {args.concurrency}")
+    print(f"  Total time:    {elapsed:.1f}s")
+    print(f"  Throughput:    {throughput:.2f} scenarios/sec")
+    print(f"  --- Cloud Latency ---")
+    print(f"  Cloud calls:   {len(cloud_latencies)}")
+    if cloud_latencies:
+        print(f"  Cloud p50:     {float(np.median(cloud_lat_arr)):.0f}ms")
+        print(f"  Cloud p99:     {float(np.percentile(cloud_lat_arr, 99)):.0f}ms")
+        print(f"  Cloud mean:    {float(cloud_lat_arr.mean()):.0f}ms")
+    print(f"  --- Cascade Latency ---")
+    print(f"  Cascade calls: {len(cascade_latencies)}")
+    if cascade_latencies:
+        print(f"  Cascade p50:   {float(np.median(cascade_lat_arr)):.0f}ms")
+        print(f"  Cascade mean:  {float(cascade_lat_arr.mean()):.0f}ms")
+    if prefetcher is not None:
+        stats = prefetcher.get_stats()
+        print(f"  --- Speculative Prefetch ---")
+        print(f"  Triggered:     {stats['prefetch_triggered']}")
+        print(f"  Useful:        {stats['prefetch_useful']}")
+        print(f"  Wasted:        {stats['prefetch_wasted']}")
+        print(f"  Precision:     {stats['precision']:.3f}")
     print(f"{'=' * 70}")
 
     results = {
@@ -263,7 +361,26 @@ async def main():
             "confidence_threshold": args.confidence_threshold,
             "baseline_rtt_ms": round(rtt, 1),
             "edge_num_gpu": args.num_gpu,
-            "deployment": f"ollama_{args.edge_model}_edge({gpu_mode}) + {args.cloud_model}_cloud",
+            "deployment": f"{args.edge_model}_edge(quantized) + {args.cloud_model}_cloud",
+        },
+        "optimization": {
+            "concurrency": args.concurrency,
+            "speculative_prefetch": args.speculative_prefetch,
+        },
+        "throughput": {
+            "scenarios_per_sec": round(throughput, 2),
+            "elapsed_seconds": round(elapsed, 2),
+        },
+        "cloud_latency": {
+            "count": len(cloud_latencies),
+            "p50_ms": round(float(np.median(cloud_lat_arr)), 1) if cloud_latencies else None,
+            "p99_ms": round(float(np.percentile(cloud_lat_arr, 99)), 1) if cloud_latencies else None,
+            "mean_ms": round(float(cloud_lat_arr.mean()), 1) if cloud_latencies else None,
+        },
+        "cascade_latency": {
+            "count": len(cascade_latencies),
+            "p50_ms": round(float(np.median(cascade_lat_arr)), 1) if cascade_latencies else None,
+            "mean_ms": round(float(cascade_lat_arr.mean()), 1) if cascade_latencies else None,
         },
         "confidence_stats": {
             "mean": round(float(conf_arr.mean()), 3),
@@ -271,6 +388,7 @@ async def main():
             "min": round(float(conf_arr.min()), 3),
             "max": round(float(conf_arr.max()), 3),
         },
+        "prefetch_stats": prefetcher.get_stats() if prefetcher else None,
         "elapsed_seconds": round(elapsed, 2),
     }
     Path(args.output).parent.mkdir(parents=True, exist_ok=True)

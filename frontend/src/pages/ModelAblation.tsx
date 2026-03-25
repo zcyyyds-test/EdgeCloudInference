@@ -15,33 +15,6 @@ import {
 // Data from model ablation experiments
 const MODEL_DATA = [
   {
-    model: 'Qwen3-0.6B',
-    params: '0.6B',
-    accuracy: 56.7,
-    latency_p50: 520,
-    normal_acc: 66.7,
-    anomaly_acc: 33.3,
-    cloud_savings: 85,
-  },
-  {
-    model: 'Qwen3-4B',
-    params: '4B',
-    accuracy: 80.0,
-    latency_p50: 2180,
-    normal_acc: 93.3,
-    anomaly_acc: 53.3,
-    cloud_savings: 72,
-  },
-  {
-    model: 'Qwen3-32B',
-    params: '32B',
-    accuracy: 86.7,
-    latency_p50: 19700,
-    normal_acc: 100.0,
-    anomaly_acc: 66.7,
-    cloud_savings: 45,
-  },
-  {
     model: 'Qwen3.5-0.8B',
     params: '0.8B',
     accuracy: 62.3,

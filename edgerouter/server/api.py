@@ -55,7 +55,7 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    title="EdgeRouter",
+    title="EdgeCloudInference",
     description="Confidence-Driven Cloud-Edge Inference Routing",
     version="2.0.0",
     lifespan=lifespan,

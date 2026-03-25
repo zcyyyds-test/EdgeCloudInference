@@ -27,7 +27,7 @@ export default function Sidebar() {
           </svg>
         </div>
         <div>
-          <div className="text-sm font-semibold text-slate-100 leading-tight">EdgeRouter</div>
+          <div className="text-sm font-semibold text-slate-100 leading-tight">EdgeCloudInference</div>
           <div className="text-[10px] text-cyan-500 font-mono tracking-wider">v2.0</div>
         </div>
       </div>

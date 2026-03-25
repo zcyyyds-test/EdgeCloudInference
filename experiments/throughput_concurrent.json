@@ -6,12 +6,12 @@
     "false_alarm_rate": 0.0,
     "cloud_saving_rate": 0.8667,
     "upgrade_rate": 0.1333,
-    "p50_latency_ms": 7225.36,
-    "p99_latency_ms": 12723.24,
+    "p50_latency_ms": 5000.94,
+    "p99_latency_ms": 14087.02,
     "p50_emergency_latency_ms": 0.0,
     "p99_emergency_latency_ms": 0.0,
-    "p50_routing_overhead_ms": 0.0234,
-    "p99_routing_overhead_ms": 0.0818,
+    "p50_routing_overhead_ms": 0.023,
+    "p99_routing_overhead_ms": 0.1043,
     "data_security_compliance": 1.0,
     "edge_only": 26,
     "cloud_direct": 1,
@@ -28,14 +28,35 @@
     "wan_delay_ms": 50.0,
     "wan_jitter_ms": 10.0,
     "confidence_threshold": 0.7,
-    "baseline_rtt_ms": 8.8,
-    "deployment": "qwen3.5-4b_edge + vllm_qwen3.5-27b_cloud"
+    "baseline_rtt_ms": 10.2,
+    "edge_num_gpu": -1,
+    "deployment": "qwen3.5:4b_edge(quantized) + Qwen3.5-27B_cloud"
+  },
+  "optimization": {
+    "concurrency": 4,
+    "speculative_prefetch": false
+  },
+  "throughput": {
+    "scenarios_per_sec": 0.66,
+    "elapsed_seconds": 45.52
+  },
+  "cloud_latency": {
+    "count": 6,
+    "p50_ms": 7647.7,
+    "p99_ms": 9111.6,
+    "mean_ms": 7815.9
+  },
+  "cascade_latency": {
+    "count": 3,
+    "p50_ms": 12320.6,
+    "mean_ms": 11740.0
   },
   "confidence_stats": {
-    "mean": 0.818,
-    "std": 0.154,
+    "mean": 0.81,
+    "std": 0.16,
     "min": 0.42,
     "max": 0.99
   },
-  "elapsed_seconds": 186.48
+  "prefetch_stats": null,
+  "elapsed_seconds": 45.52
 }
