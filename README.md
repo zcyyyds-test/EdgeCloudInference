@@ -71,25 +71,28 @@ EdgeCloudInference uses **Qwen3.5** multimodal models that natively process both
 
 ## Key Results
 
-### Real LLM Benchmark (30 scenarios, Qwen3.5-0.8B edge + Qwen3.5-27B cloud)
+### Edge Routing Benchmark (30 scenarios, Qwen3.5-0.8B)
 
 | Metric | Value |
 |--------|------:|
-| Overall accuracy | **80.0%** |
-| Miss rate | 37.5% |
+| Anomaly detection (binary) | **100%** (0 missed, 0 false alarm) |
+| 3-class accuracy | 80.0% (24/30) |
 | False alarm rate | **0%** |
-| Cloud cost savings | **86.7%** |
-| p50 latency | 2,296 ms |
-| Confidence mean / std | 0.81 / 0.16 |
+| Cascade signal accuracy | **96.2%** (25/26 edge inferences) |
+| Routing: edge-only / cascade | 47% / 53% |
+| Confidence mean / std | 0.78 / 0.19 |
+| Routing overhead | 0.016ms |
+
+The 0.8B edge model never misses an anomaly — all 6 errors are severity underestimates (alarm → warning, conf 0.30–0.57), not missed detections. At confidence threshold 0.7, all 6 errors are correctly identified for cloud escalation, while 96% of confident edge judgments are accepted without cloud cost.
 
 ### Edge Model Ablation
 
 | Model | Params | Accuracy | P50 Latency | Cloud Savings |
 |-------|--------|----------|-------------|---------------|
-| **Qwen3.5-0.8B** | **0.8B** | **62.3%** | **280ms** | **82%** |
-| Qwen3.5-4B | 4B | 84.5% | 1500ms | 70% |
+| **Qwen3.5-0.8B** | **0.8B** | **80.0%** | **~2.3s** | **100% (edge-only)** |
+| Qwen3.5-4B | 4B | 84.5% | 1.5s | 70% |
 
-Qwen3.5-0.8B is the default edge model: sub-300ms latency enables real-time edge deployment, and its self-reported confidence naturally drives cascade escalation to the 27B cloud model.
+Qwen3.5-0.8B is the default edge model: genuinely deployable on edge devices (~0.5GB quantized), and its self-reported confidence (σ=0.189) naturally drives cascade escalation to the 27B cloud model.
 
 ### Throughput Optimization (async concurrent inference + speculative cloud prefetch)
 
@@ -221,9 +224,9 @@ docker-compose -f monitoring/docker-compose.yml up -d
 
 ## Known Limitations
 
-- Edge accuracy (80%) is limited by base model capability — addressable via LoRA fine-tuning on domain data
-- Edge p50 latency (~280ms) depends on edge hardware; TensorRT-LLM or further quantization can improve this
-- Cloud-escalated scenarios achieve 100% accuracy, confirming the routing architecture is sound
+- Edge 3-class accuracy (80%) is limited by severity discrimination — the 0.8B model detects all anomalies but underestimates severity in 20% of cases; cascade to cloud corrects these
+- Edge inference latency depends on deployment runtime; TensorRT-LLM or llama.cpp can significantly reduce this from the current Ollama baseline
+- 30-scenario sample size is sufficient for trend analysis but not for statistically rigorous p99 claims
 
 ## License
 
