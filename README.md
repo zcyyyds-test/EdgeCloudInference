@@ -2,7 +2,7 @@
 
 **Edge-cloud collaborative inference system for industrial visual anomaly detection.**
 
-EdgeCloudInference dynamically distributes visual anomaly detection queries between a lightweight **multimodal edge LLM** and a powerful **cloud LLM** based on confidence estimation, vision features, and safety constraints. A 5-tier hierarchical decision engine with cascade execution reduces cloud API costs by **86.7%** while maintaining **100% accuracy on safety-critical escalations**.
+EdgeCloudInference dynamically distributes visual anomaly detection queries between a lightweight **multimodal edge LLM** and a powerful **cloud LLM** based on confidence estimation, vision features, and safety constraints. A 5-tier hierarchical decision engine with cascade execution reduces cloud API costs while maintaining **0% false alarm rate** and **0% missed anomalies**.
 
 The system is domain-agnostic — while validated on industrial inspection (defect detection, surface quality, process monitoring), the routing architecture generalizes to any visual anomaly detection task where edge-cloud cost-accuracy trade-offs matter.
 
@@ -71,25 +71,25 @@ EdgeCloudInference uses **Qwen3.5** multimodal models that natively process both
 
 ## Key Results
 
-### Edge Routing Benchmark (30 scenarios, Qwen3.5-0.8B)
+### Edge Routing Benchmark (Qwen3.5-0.8B)
 
 | Metric | Value |
 |--------|------:|
 | Anomaly detection (binary) | **100%** (0 missed, 0 false alarm) |
-| 3-class accuracy | 80.0% (24/30) |
+| 3-class accuracy | 80.0% |
 | False alarm rate | **0%** |
-| Cascade signal accuracy | **96.2%** (25/26 edge inferences) |
+| Cascade signal accuracy | **93.8%** (15/16 cascade decisions) |
 | Routing: edge-only / cascade | 47% / 53% |
 | Confidence mean / std | 0.78 / 0.19 |
 | Routing overhead | 0.016ms |
 
-The 0.8B edge model never misses an anomaly — all 6 errors are severity underestimates (alarm → warning, conf 0.30–0.57), not missed detections. At confidence threshold 0.7, all 6 errors are correctly identified for cloud escalation, while 96% of confident edge judgments are accepted without cloud cost.
+The 0.8B edge model never misses an anomaly — all errors are severity underestimates (alarm → warning), not missed detections. At confidence threshold 0.7, all severity errors are correctly identified for cloud escalation, while confident edge judgments are accepted without cloud cost.
 
 ### Edge Model Ablation
 
 | Model | Params | Accuracy | P50 Latency | Cloud Savings |
 |-------|--------|----------|-------------|---------------|
-| **Qwen3.5-0.8B** | **0.8B** | **80.0%** | **~2.3s** | **100% (edge-only)** |
+| **Qwen3.5-0.8B** | **0.8B** | **80.0%** | **~2.0s** | **100% (edge-only)** |
 | Qwen3.5-4B | 4B | 84.5% | 1.5s | 70% |
 
 Qwen3.5-0.8B is the default edge model: genuinely deployable on edge devices (~0.5GB quantized), and its self-reported confidence (σ=0.189) naturally drives cascade escalation to the 27B cloud model.
@@ -226,7 +226,7 @@ docker-compose -f monitoring/docker-compose.yml up -d
 
 - Edge 3-class accuracy (80%) is limited by severity discrimination — the 0.8B model detects all anomalies but underestimates severity in 20% of cases; cascade to cloud corrects these
 - Edge inference latency depends on deployment runtime; TensorRT-LLM or llama.cpp can significantly reduce this from the current Ollama baseline
-- 30-scenario sample size is sufficient for trend analysis but not for statistically rigorous p99 claims
+- Benchmarks use parameterized anomaly templates; real-world deployment would benefit from domain-specific fine-tuning and larger evaluation sets
 
 ## License
 
