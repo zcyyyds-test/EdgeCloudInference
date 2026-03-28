@@ -2,7 +2,7 @@
 
 **Edge-cloud collaborative inference system for industrial visual anomaly detection.**
 
-EdgeCloudInference dynamically distributes visual anomaly detection queries between a lightweight **multimodal edge LLM** and a powerful **cloud LLM** based on confidence estimation, vision features, and safety constraints. A 5-tier hierarchical decision engine with cascade execution reduces cloud API costs while maintaining **0% false alarm rate** and **0% missed anomalies**.
+EdgeCloudInference deploys a vision detection model and a lightweight **0.8B edge LLM** on-device for local inference and tiered routing. The edge LLM's self-reported confidence drives cascade decisions — uncertain samples are escalated to a **27B cloud model** for verification and diagnosis, achieving **0% false alarm rate** and **0% missed anomalies**.
 
 The system is domain-agnostic — while validated on industrial inspection (defect detection, surface quality, process monitoring), the routing architecture generalizes to any visual anomaly detection task where edge-cloud cost-accuracy trade-offs matter.
 
