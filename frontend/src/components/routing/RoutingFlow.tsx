@@ -15,8 +15,7 @@ const tierMeta: Record<string, { label: string; color: string }> = {
   safety: { label: 'T0 Safety', color: '#f43f5e' },
   clearly_normal: { label: 'T1 Clearly Normal', color: '#10b981' },
   complex: { label: 'T2 Complex Pattern', color: '#f59e0b' },
-  confidence: { label: 'T3 Confidence Gate', color: '#3b82f6' },
-  default: { label: 'T4 Default Edge', color: '#06b6d4' },
+  grey_zone: { label: 'T4 Grey Zone Cascade', color: '#3b82f6' },
 }
 
 export default function RoutingFlow({ tiers, finalTier }: Props) {

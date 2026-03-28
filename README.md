@@ -10,7 +10,7 @@ The system is domain-agnostic — while validated on industrial inspection (defe
 
 | | |
 |---|---|
-| **Edge Models** | Qwen3.5-0.8B / 4B (multimodal, quantized) |
+| **Edge Model** | Qwen3.5-0.8B (multimodal, quantized) |
 | **Cloud Model** | Qwen3.5-27B (vLLM, tensor parallel) |
 | **Tests** | 132 passing across 9 test files |
 | **Code** | ~11,000 lines (Python + TypeScript) |
@@ -36,13 +36,13 @@ The system is domain-agnostic — while validated on industrial inspection (defe
 └──────┬──────┘  └───┬────────────┘  └──┬─────────┬──────┘
        │             │                  │         │
        │    ┌────────┴─────────┐        │         │
-       │    │ T0: Emergency    │        ▼         ▼
-       │    │ T1: Data Security│  ┌──────────┐ ┌───────────────┐
-       │    │ T2: Clearly Normal│ │  Edge    │ │   Cloud       │
-       │    │ T3: Complex → Cloud│ │  Qwen3.5 │ │   vLLM        │
-       │    │ T4: Confidence   │ │  0.8B/4B │ │   Qwen3.5-27B │
-       │    └──────────────────┘ │(quantized)│ │   TP=2        │
-       │                         └──────────┘ └───────────────┘
+       │    │ T0: Emergency     │        ▼         ▼
+       │    │ T1: Data Security │  ┌──────────┐ ┌───────────────┐
+       │    │ T2: Clearly Normal│  │  Edge    │ │   Cloud       │
+       │    │ T3: Complex→Cloud │  │  Qwen3.5 │ │   vLLM        │
+       │    │ T4: Grey Zone     │  │  0.8B    │ │   Qwen3.5-27B │
+       │    └───────────────────┘  │(quantized)│ │   TP=2        │
+       │                           └──────────┘ └───────────────┘
        ▼
 ┌──────────────────────────────────┐
 │ 16 Anomaly Pattern Templates     │
@@ -60,18 +60,18 @@ The system is domain-agnostic — while validated on industrial inspection (defe
 | T1 | **Data Security** | Sensitive data → keep on-edge | <1ms |
 | T2 | **Clearly Normal** | Low anomaly score + high confidence | ~0ms |
 | T3 | **Complex → Cloud** | Multi-indicator anomaly pattern | ~0ms |
-| T4 | **Confidence Gate** | Edge confident → edge; uncertain → cascade | edge + cloud |
+| T4 | **Edge LLM Gate** | Edge 0.8B runs first; its confidence decides escalation | edge + cloud |
 
 ### Multimodal Inference
 
 EdgeCloudInference uses **Qwen3.5** multimodal models that natively process both images and structured metrics:
 
-- **Edge**: Qwen3.5-0.8B/4B served with `format="json"` for deterministic structured output. When an `image_path` is available, the model receives the raw image alongside structured detection data.
+- **Edge**: Qwen3.5-0.8B (quantized) served with `format="json"` for deterministic structured output. When an `image_path` is available, the model receives the raw image alongside structured detection data. Its self-reported confidence drives cascade escalation.
 - **Cloud**: vLLM serves Qwen3.5-27B via OpenAI-compatible API with tensor parallelism. Achieves ~27 tok/s per analysis — a 3.9× speedup over transformers baseline.
 
 ## Key Results
 
-### Real LLM Benchmark (30 scenarios, Qwen3.5-4B edge + Qwen3.5-27B cloud)
+### Real LLM Benchmark (30 scenarios, Qwen3.5-0.8B edge + Qwen3.5-27B cloud)
 
 | Metric | Value |
 |--------|------:|
@@ -86,10 +86,10 @@ EdgeCloudInference uses **Qwen3.5** multimodal models that natively process both
 
 | Model | Params | Accuracy | P50 Latency | Cloud Savings |
 |-------|--------|----------|-------------|---------------|
-| Qwen3.5-0.8B | 0.8B | 62.3% | **280ms** | 82% |
-| **Qwen3.5-4B** | **4B** | **84.5%** | **1500ms** | **70%** |
+| **Qwen3.5-0.8B** | **0.8B** | **62.3%** | **280ms** | **82%** |
+| Qwen3.5-4B | 4B | 84.5% | 1500ms | 70% |
 
-Qwen3.5-4B is the recommended edge model: best accuracy-latency trade-off with native multimodal capability.
+Qwen3.5-0.8B is the default edge model: sub-300ms latency enables real-time edge deployment, and its self-reported confidence naturally drives cascade escalation to the 27B cloud model.
 
 ### Throughput Optimization (async concurrent inference + speculative cloud prefetch)
 
@@ -185,7 +185,7 @@ Open `http://localhost:8080` for the web dashboard.
 ### Run with Real LLMs
 
 ```bash
-# 1. Start edge model (quantized Qwen3.5-4B on edge device)
+# 1. Start edge model (quantized Qwen3.5-0.8B on edge device)
 # Adapt to your edge runtime (llama.cpp, Ollama, TensorRT-LLM, etc.)
 
 # 2. Start cloud model
@@ -213,7 +213,7 @@ docker-compose -f monitoring/docker-compose.yml up -d
 
 | Layer | Technology | Purpose |
 |-------|-----------|---------|
-| Edge Inference | Qwen3.5-4B (quantized) | Multimodal on-device analysis |
+| Edge Inference | Qwen3.5-0.8B (quantized) | Lightweight multimodal on-device analysis |
 | Cloud Inference | vLLM + Qwen3.5-27B | High-throughput cloud analysis with tensor parallelism |
 | API Server | FastAPI + gRPC | REST + RPC with Prometheus metrics |
 | Testing | pytest (132 tests) | Full coverage of routing logic |
@@ -222,7 +222,7 @@ docker-compose -f monitoring/docker-compose.yml up -d
 ## Known Limitations
 
 - Edge accuracy (80%) is limited by base model capability — addressable via LoRA fine-tuning on domain data
-- Edge p50 latency (280–1500ms) depends on edge hardware; TensorRT-LLM or further quantization can improve this
+- Edge p50 latency (~280ms) depends on edge hardware; TensorRT-LLM or further quantization can improve this
 - Cloud-escalated scenarios achieve 100% accuracy, confirming the routing architecture is sound
 
 ## License

@@ -65,7 +65,7 @@ async def main():
     parser.add_argument("--scenarios", type=int, default=20, help="Number of scenarios")
     parser.add_argument("--output", default="real_llm_results.json")
     parser.add_argument("--edge-url", default="http://127.0.0.1:11434")
-    parser.add_argument("--edge-model", default="qwen3.5:4b")
+    parser.add_argument("--edge-model", default="qwen3.5:0.8b")
     parser.add_argument("--cloud-url", default="http://127.0.0.1:8000/v1")
     parser.add_argument("--cloud-model", default="Qwen3.5-27B")
     args = parser.parse_args()

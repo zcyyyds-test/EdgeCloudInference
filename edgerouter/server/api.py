@@ -267,7 +267,7 @@ async def demo_route(req: RouteRequest):
         "detail": f"score={vo.anomaly_score:.3f}, correlated={req.num_correlated_anomalies}",
     })
     tiers_evaluated.append({
-        "tier": "confidence", "triggered": "confident_edge" in reason or "uncertain" in reason,
+        "tier": "grey_zone", "triggered": "grey_zone" in reason,
         "detail": reason,
     })
 

@@ -26,7 +26,7 @@ class RouterConfig(BaseSettings):
     safe_anomaly_range: float = 40.0       # safe range width (±20 from center)
 
     # Confidence estimation method: "output_prob", "self_verify", "temporal", "combined"
-    confidence_method: str = "combined"
+    confidence_method: str = "edge_llm"   # use edge model's own confidence for cascade
 
     # Speculative prefetch: fire edge+cloud in parallel for cascade tier
     enable_speculative_prefetch: bool = False
@@ -41,7 +41,7 @@ class EdgeAnalyzerConfig(BaseSettings):
     """Edge analyzer configuration — supports Qwen3.5 multimodal."""
 
     base_url: str = "http://localhost:11434"
-    model: str = "qwen3.5:4b"              # Qwen3.5 multimodal (vision+text)
+    model: str = "qwen3.5:0.8b"             # Qwen3.5 0.8B multimodal — lightweight edge model
     timeout: float = 30.0
     temperature: float = 0.1
     max_tokens: int = 1024

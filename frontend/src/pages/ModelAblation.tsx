@@ -186,11 +186,11 @@ export default function ModelAblation() {
         </div>
         <div className="grid grid-cols-2 gap-4 text-xs text-slate-400">
           <div className="space-y-2">
-            <div className="text-cyan-400 font-medium text-sm">Qwen3.5-4B (Recommended Edge)</div>
+            <div className="text-cyan-400 font-medium text-sm">Qwen3.5-0.8B (Default Edge)</div>
             <ul className="space-y-1 list-disc list-inside">
-              <li>Best accuracy-latency trade-off for edge deployment</li>
-              <li>Multimodal vision capability enables direct image analysis</li>
-              <li>~70% cloud savings while maintaining 84.5% accuracy</li>
+              <li>Sub-300ms latency — viable for real-time edge deployment</li>
+              <li>Self-reported confidence drives cascade escalation to cloud</li>
+              <li>~82% cloud savings; uncertain samples escalate to 27B for accuracy</li>
             </ul>
           </div>
           <div className="space-y-2">

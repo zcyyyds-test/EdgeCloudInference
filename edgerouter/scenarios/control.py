@@ -15,8 +15,8 @@ Key insight: delay is the differentiator.
   - EdgeRouter: edge corrects in 1s, cloud refines in 8s when edge is uncertain
   - No Control: valve fixed → drifts
 
-The edge model (0.6B) has higher judgment thresholds (misses marginal warnings).
-The cloud model (14B) has lower thresholds (catches everything, but arrives late).
+The edge model (0.8B) has higher judgment thresholds (misses marginal warnings).
+The cloud model (27B) has lower thresholds (catches everything, but arrives late).
 """
 
 from __future__ import annotations
@@ -53,9 +53,9 @@ class TankConfig:
 
     # Edge vs Cloud accuracy
     # Edge: only reacts when |error| > edge_deadband
-    edge_deadband_cm: float = 8.0   # 0.6B model misses subtle deviations
+    edge_deadband_cm: float = 8.0   # 0.8B model misses subtle deviations
     # Cloud: reacts when |error| > cloud_deadband
-    cloud_deadband_cm: float = 2.0  # 14B model catches subtle changes
+    cloud_deadband_cm: float = 2.0  # 27B model catches subtle changes
 
     # Control gain per strategy
     edge_gain: float = 0.006     # edge: less aggressive (less confident)
@@ -314,14 +314,14 @@ def run_all_strategies(
     return [
         run_ideal(cfg, Q_in),
         _run_delayed_controller(
-            cfg, Q_in, "Edge-Only (0.6B)",
+            cfg, Q_in, "Edge-Only (0.8B)",
             delay=cfg.edge_delay,
             deadband=cfg.edge_deadband_cm,
             gain=cfg.edge_gain,
             rng=np.random.default_rng(seed),
         ),
         _run_delayed_controller(
-            cfg, Q_in, "Cloud-Only (14B)",
+            cfg, Q_in, "Cloud-Only (27B)",
             delay=cfg.cloud_delay,
             deadband=cfg.cloud_deadband_cm,
             gain=cfg.cloud_gain,

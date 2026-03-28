@@ -210,7 +210,12 @@ class CascadeExecutor:
     ) -> float:
         """Select confidence estimation method based on config."""
         method = self.config.confidence_method
-        if method == "output_prob":
+        if method == "edge_llm":
+            # Primary: use edge model's own self-reported confidence
+            if edge_result is not None:
+                return edge_result.confidence
+            return estimate_from_output(vision_output, self.config)
+        elif method == "output_prob":
             return estimate_from_output(vision_output, self.config)
         elif method == "self_verify":
             return estimate_from_self_verification(vision_output, edge_result)

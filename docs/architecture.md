@@ -20,9 +20,9 @@ graph TB
     subgraph Router["Routing Engine"]
         T1["Tier 1: Safety Classifier<br/>Emergency cutoff"]
         T2["Tier 2: Data Security<br/>Sensitive data → edge"]
-        T3["Tier 3: Feature-based<br/>Vision anomaly score"]
-        T4["Tier 4: Confidence<br/>LLM confidence threshold"]
-        T5["Tier 5: Cascade<br/>Edge → Cloud escalation"]
+        T3["Tier 3: Clearly Normal<br/>Low anomaly + high confidence"]
+        T4["Tier 4: Complex Pattern<br/>Multi-indicator → Cloud"]
+        T5["Tier 5: Grey Zone<br/>Edge LLM → cascade if uncertain"]
     end
 
     subgraph Execution["Execution Layer"]
@@ -32,7 +32,7 @@ graph TB
     end
 
     subgraph Inference["Inference Backends"]
-        Edge["Edge Analyzer<br/>Qwen3.5 (0.8B/4B)"]
+        Edge["Edge Analyzer<br/>Qwen3.5-0.8B (quantized)"]
         Cloud["Cloud Analyzer<br/>vLLM Qwen3.5-27B"]
     end
 
@@ -93,14 +93,13 @@ flowchart TD
     S2 -->|Yes| EdgeSecure["EDGE<br/>Keep on-premise"]
     S2 -->|No| S3
 
-    S3{"Tier 3: Feature-based<br/>anomaly_score > threshold?"}
-    S3 -->|High anomaly| CloudDirect["CLOUD<br/>Direct escalation"]
-    S3 -->|Low anomaly| S4
+    S3{"Tier 3: Clearly Normal<br/>Low score + high conf?"}
+    S3 -->|Yes| EdgeNormal["EDGE<br/>Local processing"]
+    S3 -->|No| S4
 
-    S4{"Tier 4: Confidence<br/>Predicted confidence?"}
-    S4 -->|High confidence| EdgeConf["EDGE<br/>Local processing"]
-    S4 -->|Medium| CascadeRoute["CASCADE<br/>Edge first, then decide"]
-    S4 -->|Low confidence| CloudConf["CLOUD<br/>Direct to cloud"]
+    S4{"Tier 4: Complex Pattern<br/>High score or multi-anomaly?"}
+    S4 -->|Yes| CloudDirect["CLOUD<br/>Direct escalation"]
+    S4 -->|No| CascadeRoute["CASCADE<br/>Edge 0.8B first, then decide"]
 
     CascadeRoute --> EdgeRun["Run Edge LLM"]
     EdgeRun --> ConfCheck{"Edge confidence<br/>> threshold?"}
@@ -110,9 +109,8 @@ flowchart TD
     style Emergency fill:#ff6b6b,color:#fff
     style EdgeSecure fill:#4ecdc4,color:#fff
     style CloudDirect fill:#45b7d1,color:#fff
-    style EdgeConf fill:#4ecdc4,color:#fff
+    style EdgeNormal fill:#4ecdc4,color:#fff
     style CascadeRoute fill:#f9ca24,color:#333
-    style CloudConf fill:#45b7d1,color:#fff
 ```
 
 ## Cascade Execution Sequence
@@ -122,7 +120,7 @@ sequenceDiagram
     participant R as Router Engine
     participant C as Cascade Executor
     participant E as Edge LLM
-    participant CL as Cloud LLM (14B)
+    participant CL as Cloud LLM (27B)
     participant L as Online Learner
 
     R->>C: execute(vision, context, decision)

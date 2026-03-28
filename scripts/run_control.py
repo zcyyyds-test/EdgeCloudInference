@@ -31,8 +31,8 @@ from edgerouter.scenarios.control import (
 
 COLORS = {
     "Ideal Controller": ("#222222", "--", 1.5),
-    "Edge-Only (0.6B)": ("#2196F3", "-", 1.3),
-    "Cloud-Only (14B)": ("#F44336", "-", 1.3),
+    "Edge-Only (0.8B)": ("#2196F3", "-", 1.3),
+    "Cloud-Only (27B)": ("#F44336", "-", 1.3),
     "EdgeRouter (Cascade)": ("#4CAF50", "-", 2.0),
     "No Control": ("#9E9E9E", ":", 1.0),
 }

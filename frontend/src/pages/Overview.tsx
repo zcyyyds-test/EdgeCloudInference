@@ -127,8 +127,8 @@ export default function Overview() {
           <div className="space-y-2">
             <div className="text-sm font-medium text-cyan-400">Edge Tier</div>
             <div className="text-xs text-slate-400 leading-relaxed">
-              Qwen3.5-4B (quantized) on edge device. Handles ~72% of requests
-              with low latency. Multimodal vision + structured data analysis.
+              Qwen3.5-0.8B (quantized) on edge device. Handles ~72% of requests
+              with sub-300ms latency. Its self-reported confidence drives cascade escalation.
             </div>
           </div>
           <div className="space-y-2">
@@ -141,8 +141,8 @@ export default function Overview() {
           <div className="space-y-2">
             <div className="text-sm font-medium text-amber-400">5-Tier Router</div>
             <div className="text-xs text-slate-400 leading-relaxed">
-              Safety → Clearly Normal → Complex Pattern → Confidence Gate → Default Edge.
-              ~8ms overhead. Adaptive confidence estimation with temporal smoothing.
+              Safety → Clearly Normal → Complex Pattern → Grey Zone Cascade.
+              ~8ms overhead. Edge LLM confidence drives cascade escalation.
             </div>
           </div>
         </div>

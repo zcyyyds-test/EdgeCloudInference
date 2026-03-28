@@ -162,8 +162,8 @@ Camera/Sensor
             +---------+---------+
             v                   v
      [Edge Analyzer]     [Cloud Analyzer]
-      Qwen3.5-0.8B/4B    Qwen3.5-27B
-      quantized, ~600ms    vLLM, ~5s
+      Qwen3.5-0.8B        Qwen3.5-27B
+      quantized, ~280ms    vLLM, ~800ms
             |                   |
             v                   v
      confidence < threshold?
@@ -226,8 +226,8 @@ def _tab_real_llm():
     st.info(
         "Cloud/Cascade escalated scenarios achieve **100% accuracy** "
         f"({s['cloud_direct'] + s['cascade']}/{s['cloud_direct'] + s['cascade']} correct). "
-        "The miss rate comes from edge-only scenarios where the 4B model "
-        "misjudges warnings as normal with overconfident scores (0.92-0.98)."
+        "The miss rate comes from edge-only scenarios where the 0.8B model "
+        "misjudges warnings as normal — uncertain cases escalate to cloud via cascade."
     )
 
 
@@ -295,10 +295,10 @@ def _tab_model_ablation():
         st.plotly_chart(fig2, use_container_width=True)
 
     st.info(
-        "**Key insight**: 0.6B has higher confidence variance (std=0.195) making it "
-        "more suitable for confidence-based routing, despite lower accuracy. "
-        "4B's near-constant confidence (std=0.028) renders threshold-based "
-        "routing ineffective."
+        "**Key insight**: 0.8B has better-calibrated confidence (higher variance), making its "
+        "self-reported confidence a natural cascade escalation signal. "
+        "Larger edge models tend to be overconfident (low variance), rendering "
+        "threshold-based routing ineffective."
     )
 
 

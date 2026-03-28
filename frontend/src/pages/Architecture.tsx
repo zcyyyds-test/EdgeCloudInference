@@ -24,23 +24,23 @@ export default function Architecture() {
  ┌──────────────────────────────────────────────────────────────────────┐
  │                      5-TIER ROUTING ENGINE                          │
  │                                                                      │
- │  T0 ─ Safety Check ──────── anomaly_level < 5 or > 95 → ALARM     │
+ │  T0 ─ Safety Emergency ──── anomaly_level < 5 or > 95 → ALARM     │
  │  │                                                                    │
- │  T1 ─ Clearly Normal ───── score < 0.2 & conf > 0.85 → EDGE ONLY │
+ │  T1 ─ Data Security ────── sensitive data → EDGE ONLY              │
  │  │                                                                    │
- │  T2 ─ Complex Pattern ──── score > 0.8 & multi-anomaly → CLOUD    │
+ │  T2 ─ Clearly Normal ───── score < 0.2 & conf > 0.85 → EDGE ONLY │
  │  │                                                                    │
- │  T3 ─ Confidence Gate ──── conf < threshold(0.7) → CASCADE         │
+ │  T3 ─ Complex Pattern ──── score > 0.8 or multi-anomaly → CLOUD   │
  │  │                                                                    │
- │  T4 ─ Default ─────────── remaining → EDGE ONLY                    │
+ │  T4 ─ Grey Zone ────────── edge LLM first → cascade if uncertain   │
  └──────────┬──────────────────────────┬───────────────────────────────┘
             │                          │
      ┌──────▼──────┐          ┌────────▼────────┐
      │  EDGE TIER  │          │   CLOUD TIER    │
      │             │          │                 │
-     │ Qwen3.5-4B │──drift──▶│ Qwen3.5-27B    │
-     │ quantized   │ cascade  │ vLLM (TP=2)    │
-     │ ~92ms P50   │          │ ~800ms P50      │
+     │ Qwen3.5    │──drift──▶│ Qwen3.5-27B    │
+     │ 0.8B quant  │ cascade  │ vLLM (TP=2)    │
+     │ ~280ms P50  │          │ ~800ms P50      │
      │             │          │                 │
      │ Multimodal  │          │ Root cause      │
      │ (vision+    │          │ analysis +      │
@@ -70,38 +70,38 @@ export default function Architecture() {
             {[
               {
                 tier: 'T0',
-                name: 'Safety Check',
+                name: 'Safety Emergency',
                 color: 'text-rose-400',
                 border: 'border-rose-500/20',
-                desc: 'Critical anomaly detection (level <5 or >95, rate >10/s). Immediate alarm, bypasses all analysis.',
+                desc: 'Critical anomaly detection (level <5 or >95). Immediate alarm, bypasses all analysis.',
               },
               {
                 tier: 'T1',
+                name: 'Data Security',
+                color: 'text-violet-400',
+                border: 'border-violet-500/20',
+                desc: 'Sensitive data detected. Forces edge-only processing — no data leaves the device.',
+              },
+              {
+                tier: 'T2',
                 name: 'Clearly Normal',
                 color: 'text-emerald-400',
                 border: 'border-emerald-500/20',
                 desc: 'Low anomaly score (<0.2) with high confidence (>0.85). Handles ~40% of traffic. Edge-only, no cloud needed.',
               },
               {
-                tier: 'T2',
+                tier: 'T3',
                 name: 'Complex Pattern',
                 color: 'text-amber-400',
                 border: 'border-amber-500/20',
-                desc: 'High anomaly score (>0.8) with multiple correlated anomalies (≥2). Routes directly to cloud for deep analysis.',
-              },
-              {
-                tier: 'T3',
-                name: 'Confidence Gate',
-                color: 'text-blue-400',
-                border: 'border-blue-500/20',
-                desc: 'Edge confidence below threshold (0.7). Cascades to cloud — edge draft sent as reference for cloud to refine.',
+                desc: 'High anomaly score (>0.8) or multiple correlated anomalies (≥2). Routes directly to cloud for deep analysis.',
               },
               {
                 tier: 'T4',
-                name: 'Default Edge',
-                color: 'text-cyan-400',
-                border: 'border-cyan-500/20',
-                desc: 'All remaining requests handled by edge. Covers moderate-confidence scenarios where edge is sufficient.',
+                name: 'Grey Zone Cascade',
+                color: 'text-blue-400',
+                border: 'border-blue-500/20',
+                desc: 'All remaining requests. Edge 0.8B LLM runs first; its self-reported confidence decides whether to escalate to cloud.',
               },
             ].map((t) => (
               <div key={t.tier} className={`border ${t.border} rounded-lg p-3 bg-slate-950/30`}>
@@ -123,7 +123,7 @@ export default function Architecture() {
             </div>
             <div className="space-y-3">
               {[
-                { label: 'Edge Model', value: 'Qwen3.5-4B (quantized)', detail: 'Multimodal (vision + text), ~3.4GB VRAM' },
+                { label: 'Edge Model', value: 'Qwen3.5-0.8B (quantized)', detail: 'Multimodal (vision + text), ~0.5GB VRAM' },
                 { label: 'Cloud Model', value: 'Qwen3.5-27B via vLLM', detail: 'Tensor parallel, continuous batching, OpenAI-compatible API' },
                 { label: 'Framework', value: 'Python 3.11+ / FastAPI', detail: 'Async, Prometheus metrics, gRPC support' },
                 { label: 'Dataset', value: 'MVTec AD', detail: '15 categories, 5000+ images, public benchmark' },

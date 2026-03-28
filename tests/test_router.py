@@ -142,7 +142,8 @@ class TestRouterEngine:
         decision = self.engine.route(vo, ctx)
         assert decision.tier == RoutingTier.CLOUD
 
-    def test_grey_zone_high_confidence_routes_edge(self):
+    def test_grey_zone_always_cascades(self):
+        """Grey zone always routes to CASCADE — edge LLM decides escalation."""
         vo = VisionOutput(
             anomaly_level=50.0,
             anomaly_score=0.3,
@@ -150,9 +151,8 @@ class TestRouterEngine:
         )
         ctx = ProcessContext()
         decision = self.engine.route(vo, ctx)
-        # With confidence ~0.80 + margin bonus, should be above 0.7 threshold
-        assert decision.tier == RoutingTier.EDGE
-        assert "confident_edge" in decision.reason
+        assert decision.tier == RoutingTier.CASCADE
+        assert "grey_zone" in decision.reason
 
     def test_grey_zone_low_confidence_cascades(self):
         vo = VisionOutput(

@@ -86,7 +86,7 @@ async def main():
     parser.add_argument("--output", default="experiments/docker_benchmark.json")
     parser.add_argument("--edge-url", default="http://172.20.0.2:11434",
                         help="Docker edge model URL")
-    parser.add_argument("--edge-model", default="qwen3.5:4b")
+    parser.add_argument("--edge-model", default="qwen3.5:0.8b")
     parser.add_argument("--cloud-url", default="http://localhost:8000/v1")
     parser.add_argument("--cloud-model", default="Qwen3.5-27B")
     args = parser.parse_args()

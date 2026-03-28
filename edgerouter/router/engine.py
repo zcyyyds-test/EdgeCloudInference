@@ -12,12 +12,6 @@ from edgerouter.core.schema import (
     RoutingTier,
     VisionOutput,
 )
-from edgerouter.router.confidence import (
-    estimate_combined,
-    estimate_from_output,
-    estimate_from_self_verification,
-    estimate_from_temporal,
-)
 from edgerouter.router.data_security import DataSecurityChecker
 from edgerouter.router.safety import SafetyClassifier
 
@@ -86,36 +80,15 @@ class RouterEngine:
             )
             return self._finalise(decision, t_start)
 
-        # --- Tier 4: Grey zone → cascade ---
-        confidence = self._estimate_tier4_confidence(vision_output)
-        if confidence >= self.config.confidence_threshold:
-            decision = RoutingDecision(
-                tier=RoutingTier.EDGE,
-                reason=f"confident_edge (conf={confidence:.3f})",
-            )
-        else:
-            decision = RoutingDecision(
-                tier=RoutingTier.CASCADE,
-                reason=f"uncertain (conf={confidence:.3f})",
-            )
+        # --- Tier 4: Grey zone → always cascade ---
+        # The edge LLM runs first; its self-reported confidence decides
+        # whether to escalate to cloud (handled by CascadeExecutor).
+        decision = RoutingDecision(
+            tier=RoutingTier.CASCADE,
+            reason="grey_zone",
+        )
 
         return self._finalise(decision, t_start)
-
-    # -------------------------------------------------------------------
-
-    def _estimate_tier4_confidence(self, vision_output: VisionOutput) -> float:
-        """Use the configured confidence method for Tier 4 decision.
-
-        Note: self_verify and temporal methods require data not available at
-        single-frame routing time (edge analysis result and history window
-        respectively). They fall back to output_prob here. The full methods
-        are exercised in CascadeExecutor where edge results and history exist.
-        """
-        # All methods converge to output_prob at routing time because
-        # self_verify needs an edge result and temporal needs a history window.
-        # The config option still matters for ablation logging and future
-        # integration with streaming/batch routing.
-        return estimate_from_output(vision_output, self.config)
 
     def _finalise(self, decision: RoutingDecision, t_start: float) -> RoutingDecision:
         elapsed_ms = (time.perf_counter() - t_start) * 1000

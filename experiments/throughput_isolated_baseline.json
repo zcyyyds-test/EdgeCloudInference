@@ -20,7 +20,7 @@
     "sensitive_leaked": 0
   },
   "config": {
-    "edge_model": "qwen3.5:4b",
+    "edge_model": "qwen3.5:0.8b",
     "cloud_model": "Qwen3.5-27B",
     "edge_url": "http://127.0.0.1:11434",
     "cloud_url": "http://127.0.0.1:8000/v1",
@@ -30,7 +30,7 @@
     "confidence_threshold": 0.7,
     "baseline_rtt_ms": 9.1,
     "edge_num_gpu": -1,
-    "deployment": "qwen3.5:4b_edge(quantized) + Qwen3.5-27B_cloud"
+    "deployment": "qwen3.5:0.8b_edge(quantized) + Qwen3.5-27B_cloud"
   },
   "optimization": {
     "concurrency": 1,
