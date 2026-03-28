@@ -1,0 +1,369 @@
+{
+  "config": {
+    "edge_model": "qwen3.5:0.8b",
+    "cloud_model": "none (edge-only)",
+    "scenarios": 30,
+    "confidence_threshold": 0.7
+  },
+  "summary": {
+    "accuracy": 0.8,
+    "miss_rate": 0.0,
+    "false_alarm_rate": 0.0,
+    "correct": 24,
+    "false_positives": 0,
+    "false_negatives": 0
+  },
+  "routing": {
+    "emergency": 0,
+    "edge": 14,
+    "cloud": 0,
+    "cascade": 16,
+    "cloud_saving_pct": 100.0
+  },
+  "latency": {
+    "p50_ms": 2015.3,
+    "p95_ms": 2620.7,
+    "p99_ms": 31039.1,
+    "mean_ms": 2609.3
+  },
+  "confidence": {
+    "mean": 0.776,
+    "std": 0.189,
+    "min": 0.3,
+    "max": 0.99
+  },
+  "routing_overhead_ms": 0.016,
+  "elapsed_seconds": 78.3,
+  "per_scenario": [
+    {
+      "idx": 1,
+      "name": "Indicator Approaching Upper Threshold",
+      "tier": "cascade",
+      "reason": "grey_zone",
+      "predicted": "warning",
+      "ground_truth": "warning",
+      "correct": true,
+      "confidence": 0.719,
+      "latency_ms": 42643.1
+    },
+    {
+      "idx": 2,
+      "name": "Multi-Indicator Correlated Anomaly",
+      "tier": "cascade",
+      "reason": "grey_zone",
+      "predicted": "warning",
+      "ground_truth": "alarm",
+      "correct": false,
+      "confidence": 0.3,
+      "latency_ms": 2540.5
+    },
+    {
+      "idx": 3,
+      "name": "Critical Surge with Texture Anomaly",
+      "tier": "cascade",
+      "reason": "grey_zone",
+      "predicted": "warning",
+      "ground_truth": "alarm",
+      "correct": false,
+      "confidence": 0.56,
+      "latency_ms": 2591.2
+    },
+    {
+      "idx": 4,
+      "name": "Normal Steady State",
+      "tier": "edge",
+      "reason": "clearly_normal",
+      "predicted": "normal",
+      "ground_truth": "normal",
+      "correct": true,
+      "confidence": 0.954,
+      "latency_ms": 0.0
+    },
+    {
+      "idx": 5,
+      "name": "Secondary Metric Elevated",
+      "tier": "cascade",
+      "reason": "grey_zone",
+      "predicted": "warning",
+      "ground_truth": "warning",
+      "correct": true,
+      "confidence": 0.72,
+      "latency_ms": 2340.5
+    },
+    {
+      "idx": 6,
+      "name": "Novel Texture Pattern",
+      "tier": "cascade",
+      "reason": "grey_zone",
+      "predicted": "warning",
+      "ground_truth": "alarm",
+      "correct": false,
+      "confidence": 0.36,
+      "latency_ms": 2395.9
+    },
+    {
+      "idx": 7,
+      "name": "Normal Minor Fluctuation",
+      "tier": "edge",
+      "reason": "clearly_normal",
+      "predicted": "normal",
+      "ground_truth": "normal",
+      "correct": true,
+      "confidence": 0.925,
+      "latency_ms": 0.0
+    },
+    {
+      "idx": 8,
+      "name": "Critical Surge with Texture Anomaly",
+      "tier": "cascade",
+      "reason": "grey_zone",
+      "predicted": "warning",
+      "ground_truth": "alarm",
+      "correct": false,
+      "confidence": 0.57,
+      "latency_ms": 1882.1
+    },
+    {
+      "idx": 9,
+      "name": "Indicator Approaching Lower Threshold",
+      "tier": "cascade",
+      "reason": "grey_zone",
+      "predicted": "warning",
+      "ground_truth": "warning",
+      "correct": true,
+      "confidence": 0.72,
+      "latency_ms": 2610.2
+    },
+    {
+      "idx": 10,
+      "name": "Normal Minor Fluctuation",
+      "tier": "edge",
+      "reason": "clearly_normal",
+      "predicted": "normal",
+      "ground_truth": "normal",
+      "correct": true,
+      "confidence": 0.933,
+      "latency_ms": 0.0
+    },
+    {
+      "idx": 11,
+      "name": "Secondary Metric Elevated",
+      "tier": "cascade",
+      "reason": "grey_zone",
+      "predicted": "warning",
+      "ground_truth": "warning",
+      "correct": true,
+      "confidence": 0.71,
+      "latency_ms": 2599.5
+    },
+    {
+      "idx": 12,
+      "name": "Indicator Approaching Upper Threshold",
+      "tier": "cascade",
+      "reason": "grey_zone",
+      "predicted": "warning",
+      "ground_truth": "warning",
+      "correct": true,
+      "confidence": 0.76,
+      "latency_ms": 2507.0
+    },
+    {
+      "idx": 13,
+      "name": "Normal Gradual Rise (Safe)",
+      "tier": "edge",
+      "reason": "clearly_normal",
+      "predicted": "normal",
+      "ground_truth": "normal",
+      "correct": true,
+      "confidence": 0.927,
+      "latency_ms": 0.0
+    },
+    {
+      "idx": 14,
+      "name": "Normal with Sensitive Context",
+      "tier": "edge",
+      "reason": "clearly_normal",
+      "predicted": "normal",
+      "ground_truth": "normal",
+      "correct": true,
+      "confidence": 0.945,
+      "latency_ms": 0.0
+    },
+    {
+      "idx": 15,
+      "name": "Normal Gradual Rise (Safe)",
+      "tier": "edge",
+      "reason": "clearly_normal",
+      "predicted": "normal",
+      "ground_truth": "normal",
+      "correct": true,
+      "confidence": 0.939,
+      "latency_ms": 0.0
+    },
+    {
+      "idx": 16,
+      "name": "Indicator Approaching Upper Threshold",
+      "tier": "cascade",
+      "reason": "grey_zone",
+      "predicted": "warning",
+      "ground_truth": "warning",
+      "correct": true,
+      "confidence": 0.69,
+      "latency_ms": 2411.0
+    },
+    {
+      "idx": 17,
+      "name": "Normal with Sensitive Context",
+      "tier": "edge",
+      "reason": "clearly_normal",
+      "predicted": "normal",
+      "ground_truth": "normal",
+      "correct": true,
+      "confidence": 0.925,
+      "latency_ms": 0.0
+    },
+    {
+      "idx": 18,
+      "name": "Anomaly with Sensitive Context",
+      "tier": "cascade",
+      "reason": "grey_zone",
+      "predicted": "warning",
+      "ground_truth": "alarm",
+      "correct": false,
+      "confidence": 0.435,
+      "latency_ms": 2149.4
+    },
+    {
+      "idx": 19,
+      "name": "Indicator Approaching Upper Threshold",
+      "tier": "cascade",
+      "reason": "grey_zone",
+      "predicted": "warning",
+      "ground_truth": "warning",
+      "correct": true,
+      "confidence": 0.73,
+      "latency_ms": 2148.5
+    },
+    {
+      "idx": 20,
+      "name": "Normal Minor Fluctuation",
+      "tier": "edge",
+      "reason": "clearly_normal",
+      "predicted": "normal",
+      "ground_truth": "normal",
+      "correct": true,
+      "confidence": 0.925,
+      "latency_ms": 0.0
+    },
+    {
+      "idx": 21,
+      "name": "Normal Steady State",
+      "tier": "edge",
+      "reason": "clearly_normal",
+      "predicted": "normal",
+      "ground_truth": "normal",
+      "correct": true,
+      "confidence": 0.953,
+      "latency_ms": 0.0
+    },
+    {
+      "idx": 22,
+      "name": "Anomaly with Sensitive Context",
+      "tier": "cascade",
+      "reason": "grey_zone",
+      "predicted": "warning",
+      "ground_truth": "alarm",
+      "correct": false,
+      "confidence": 0.568,
+      "latency_ms": 2312.5
+    },
+    {
+      "idx": 23,
+      "name": "Normal Gradual Rise (Safe)",
+      "tier": "edge",
+      "reason": "clearly_normal",
+      "predicted": "normal",
+      "ground_truth": "normal",
+      "correct": true,
+      "confidence": 0.962,
+      "latency_ms": 0.0
+    },
+    {
+      "idx": 24,
+      "name": "Subtle Color Shift",
+      "tier": "cascade",
+      "reason": "grey_zone",
+      "predicted": "warning",
+      "ground_truth": "warning",
+      "correct": true,
+      "confidence": 0.747,
+      "latency_ms": 2230.3
+    },
+    {
+      "idx": 25,
+      "name": "Normal Steady State",
+      "tier": "edge",
+      "reason": "clearly_normal",
+      "predicted": "normal",
+      "ground_truth": "normal",
+      "correct": true,
+      "confidence": 0.915,
+      "latency_ms": 0.0
+    },
+    {
+      "idx": 26,
+      "name": "Normal with Sensitive Context",
+      "tier": "edge",
+      "reason": "clearly_normal",
+      "predicted": "normal",
+      "ground_truth": "normal",
+      "correct": true,
+      "confidence": 0.99,
+      "latency_ms": 0.0
+    },
+    {
+      "idx": 27,
+      "name": "Secondary Metric Elevated",
+      "tier": "cascade",
+      "reason": "grey_zone",
+      "predicted": "warning",
+      "ground_truth": "warning",
+      "correct": true,
+      "confidence": 0.71,
+      "latency_ms": 2629.2
+    },
+    {
+      "idx": 28,
+      "name": "Normal Gradual Rise (Safe)",
+      "tier": "edge",
+      "reason": "clearly_normal",
+      "predicted": "normal",
+      "ground_truth": "normal",
+      "correct": true,
+      "confidence": 0.984,
+      "latency_ms": 0.0
+    },
+    {
+      "idx": 29,
+      "name": "Indicator Approaching Lower Threshold",
+      "tier": "cascade",
+      "reason": "grey_zone",
+      "predicted": "warning",
+      "ground_truth": "warning",
+      "correct": true,
+      "confidence": 0.78,
+      "latency_ms": 2287.7
+    },
+    {
+      "idx": 30,
+      "name": "Normal Minor Fluctuation",
+      "tier": "edge",
+      "reason": "clearly_normal",
+      "predicted": "normal",
+      "ground_truth": "normal",
+      "correct": true,
+      "confidence": 0.912,
+      "latency_ms": 0.0
+    }
+  ]
+}
